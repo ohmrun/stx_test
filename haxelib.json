@@ -1,0 +1,22 @@
+{
+    "name": "stx_test",
+    "license": "MIT",
+    "tags": [
+        "cross",
+        "functional"
+    ],
+    "description": "Helpers for testing",
+    "contributors": [
+        "0b1kn00b"
+    ],
+    "releasenote": "see CHANGELOG.md",
+    "version": "0.1.0",
+    "url": "https://github.com/ohmrun/stx_test",
+    "dependencies": {
+        "tink_core": "git:https://github.com/haxetink/tink_core.git",
+        "hx3compat": "git:https://github.com/HaxeFoundation/hx3compat.git",
+        "utest"    : "git:https://github.com/haxe-utest/utest.git",
+        "stx_pico" : "git:https://github.com/ohmrun/stx_pico.git"
+    },
+    "classPath": "src/main/haxe"
+}
