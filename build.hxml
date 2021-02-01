@@ -5,7 +5,7 @@
 -lib stx_log
 
 -lib utest
--lib stx_assert:0.1.0
+-lib stx_assert
 
 -lib hx3compat
 -D poke
