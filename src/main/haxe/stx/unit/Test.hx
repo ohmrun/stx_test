@@ -1,5 +1,7 @@
 package stx.unit;
 
+import equals.Equal as Equality;
+
 class Test{
   static public function unit<T:TestCase>(wildcard:Wildcard,tests:Array<T>){
     var results = new Runner().apply(
@@ -65,7 +67,7 @@ private class Timeout{
             if(!cancelled){
               @:privateAccess method_call.data.__assertions.push(
                 Assertion.make(false,
-                  TestTimedOut,Position.make(method_call.file,method_call.type,method_call.test,null,null)
+                  'timeout',TestTimedOut,Position.make(method_call.file,method_call.type,method_call.test,null,null)
                 )
               );
             }
@@ -132,11 +134,11 @@ typedef AssertionDef = {
   var pos           : Pos;
 }
 @:forward abstract Assertion(AssertionDef) from AssertionDef to AssertionDef {
-  static public function make(truth,?explanation,?failure,pos){
+  static public function make(truth:Bool,explanation:String,?failure:TestFailure,pos:Pos){
     return new Assertion({
       truth         : truth,
       explanation   : explanation,
-      failure       : failure,
+      failure       : __.option(failure).def(() -> TestFailedBecause(explanation)),
       pos           : pos
     });
   }
@@ -181,6 +183,15 @@ class Assert{
   }
   public function pass(?pos:Pos){
     assert(Assertion.make(true,'assertion passed',NullTestFailure,pos));
+  }
+  public function fail(reason="force fail",?pos:Pos){
+    assert(Assertion.make(false,reason,null,pos));
+  }
+  public function same<T>(lhs:T,rhs:T,?explanation='should be the same',?pos:Pos){
+    assert(Assertion.make(Equality.equals(lhs,rhs),explanation,null,pos));
+  }
+  public function isTrue(v:Bool,?explanation='should be true',?pos:Pos){
+    assert(Assertion.make(v,explanation,null,pos));
   }
 }
 @:rtti class TestCase extends Assert{
