@@ -308,7 +308,7 @@ class TestCaseLift{
         case CFunction([{ t : CAbstract('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
           Some(get_test(v,rtti,cf,OneZero));
         case CFunction(_,_)  :
-          throw 'test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"';
+          throw 'test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"\n${cf.name}';
           None;
         default : None;
       }
