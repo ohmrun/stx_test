@@ -9,4 +9,5 @@ import tink.CoreApi;
 
 using stx.Pico;
 using stx.Nano;
+using stx.Fn;
 using stx.Assert;

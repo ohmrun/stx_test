@@ -30,20 +30,52 @@ class Test{
     );
   }
 }
-typedef TestFailure       = stx.fail.TestFailure;
-typedef TestMethodDef     = Void->Option<Async>;
+typedef TestFailure           = stx.fail.TestFailure;
+enum TestMethodSum{
+  TMZero(m:TestMethodZero);
+  TMOne(m:TestMethodOne);
+}
+abstract TestMethod(TestMethodSum) to TestMethodSum{
+  public function  new(self) this = self;
+  static public function lift(self){
+    return new TestMethod(self);
+  }
+  static public function fromTestMethodZero(self:TestMethodZero):TestMethod{
+    return lift(TMZero(self));
+  }
+  static public function fromTestMethodOne(self:TestMethodOne):TestMethod{
+    return lift(TMOne(self));
+  }
+  public function prj():TestMethodSum{
+    return this;
+  }
+}
+typedef TestMethodZeroDef     = Void->Option<Async>;
+typedef TestMethodOneDef      = Async->Void;
 
-@:callable abstract TestMethod(TestMethodDef) from TestMethodDef to TestMethodDef{
-  @:noUsing static public function fromVoid(fn:Void->Void):TestMethod{
-    return () -> {
+@:callable abstract TestMethodZero(TestMethodZeroDef){
+  public function new(self) this = self;
+  @:noUsing static public function lift(self){
+    return new TestMethodZero(self);
+  }
+  @:noUsing static public function fromVoid(fn:Void->Void):TestMethodZero{
+    return lift(() -> {
       fn();
       return None;
-    }
+    });
   }
-  @:noUsing static public function fromAsync(fn:Void->Async):TestMethod{
-    return () -> {
+  @:noUsing static public function fromAsync(fn:Void->Async):TestMethodZero{
+    return lift(() -> {
       return Some(fn());
-    }
+    });
+  }
+}
+
+@:callable abstract TestMethodOne(TestMethodOneDef){
+  public function new(self) this = self;
+
+  @:noUsing static public function fromCallback(fn:Async->Void):TestMethodOne{
+    return new TestMethodOne(fn);
   }
 }
 @:publicFields typedef WithPos<T> = {
@@ -265,9 +297,12 @@ class TestCaseLift{
     var applications  = test_fields.map_filter(
       (cf) -> switch(cf.type){
         case CFunction([],CAbstract('Void',[]))            : 
-          Some(get_test(v,rtti,cf,cast TestMethod.fromVoid));
+          Some(get_test(v,rtti,cf,false));
         case CFunction([],CAbstract('stx.unit.Async',[]))  : 
-          Some(get_test(v,rtti,cf,cast TestMethod.fromAsync));
+          Some(get_test(v,rtti,cf,false)
+          );
+        case CFunction([{ t : CAbstract('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
+          Some(get_test(v,rtti,cf,true));
         case CFunction(_,_)  :
           throw 'test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"';
           None;
@@ -327,9 +362,9 @@ class TestCaseLift{
       }
     );
     ordered_applications.reverse();
-    //trace(ordered_applications.map_filter( _ -> _.head()));
+    var reordered_applications = ordered_applications.map_filter( _ -> _.head());
 
-    return new TestCaseData(rtti,v.asTestCase(),applications);
+    return new TestCaseData(rtti,v.asTestCase(),reordered_applications);
   }
   static public function get_pos(def:Classdef,cf:ClassField):Pos{
     return {
@@ -339,31 +374,37 @@ class TestCaseLift{
       lineNumber : cf.line
     };
   }
-  static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,cons:Function->TestMethod){
+  static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,size){
     var name      = classfield.name;
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
-    var calling   = caller(test_case,name);
-    var test      = cons(calling);
-    var call      = surpress(test_case,def,classfield,test);
+    var call      = caller(test_case,name,def,classfield,size);
     var file      = def.file;
     return new AnnotatedMethodCall(test_case,file,type_name,name,call,classfield);
   }
-  static public function caller(test_case:TestCase,name:String):Function{
-    return () -> {
-      //trace("called");
-      return Reflect.callMethod(test_case,Reflect.field(test_case,name),[]);
-    }
-  }
-  static public function surpress(test_case:TestCase,def:Classdef,cf:ClassField,fn:TestMethod):TestMethod{
-    return () -> {
+  static public function caller(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:Bool):TestMethodZero{
+    var call_zero = ()  -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
+    var call_one  = (v) -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[v]);
+
+    function wrap(fn:Void->Option<Async>){
       return try{
         fn();
       }catch(e:Dynamic){
-        //trace(e);
         test_case.raise(TestRaisedError(e),get_pos(def,cf));
-        None;
+        return None;
       }
     }
+    return TestMethodZero.lift(
+      len.if_else(
+        () -> () -> { 
+          var async = Async.wait();
+          call_one(async);
+          return Some(async); 
+        },
+        () -> () -> {
+          return call_zero();
+        } 
+      )
+    );
   }
 }
 class Reporter extends Clazz{ 
@@ -436,7 +477,7 @@ class TestCaseData{
   }
 }
 class MethodCall{
-  public function new(data:TestCase,file:String,type:String,test:String,call:Void->Option<Async>){
+  public function new(data:TestCase,file:String,type:String,test:String,call:TestMethodZero){
     this.data       = data;
     this.file       = file;
     this.type       = type;
@@ -448,9 +489,8 @@ class MethodCall{
   public final file  : String;
   public final type  : String;
   public final test  : String;
-  public dynamic function call():Option<Async>{
-    return None;
-  }
+  public final call  : TestMethodZero;
+  
   public var assertions(get,null):Assertions;
   private function get_assertions():Assertions{
     return @:privateAccess this.data.__assertions.filter(
@@ -530,6 +570,17 @@ class DependsTest extends TestCase{
   }
   @depends("test_2","test_3")
   public function test_4(){
+    pass();
+  }
+}
+class UseAsyncTest extends TestCase{
+  public function test_bring(async:Async){
+    trace("JERJ");
+    pass();
+    async.done();
+  }
+  public function test_timeout(async:Async){
+    trace("JERJ");
     pass();
   }
 }
