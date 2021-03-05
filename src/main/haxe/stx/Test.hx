@@ -18,7 +18,6 @@ class Test{
       .check();
   }
   static var pokey : String = #if poke 'poke' #else 'test' #end;
-
   #if utest
   static public function test(test:Array<utest.Test>,only:Array<Dynamic>){
     __.log().info('utest:$pokey');
@@ -32,7 +31,7 @@ class Test{
   #else
   static public function test(test:Array<haxe.unit.TestCase>,only:Array<Dynamic>){
     __.log().info('hunit:$pokey');
-    __.test(#if poke ArrayLift.filter(test,Test.poke(__,only)) #else test #end);
+    __.test(#if test.filter(Test.poke(__,only)) #else test #end);
   }
   #end
 }
@@ -43,18 +42,3 @@ class LoggedTest extends utest.Test{
   }
 }
 #end
-
-// class TestState{
-//   public function new(){}
-// }
-// class TestGroup{
-//   public var entries(default,null):Array<TestEntry>;
-//   public function new(){}
-// }
-// abstract class TestEntry{
-//   public var label(default,null):String;
-//   public functio
-// }
-// class TestCls{
-  
-// }

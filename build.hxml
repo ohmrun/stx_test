@@ -1,10 +1,14 @@
 -cp src/main/haxe
 
+-lib console.hx
+-lib equals 
+
 -lib stx_pico
 -lib stx_nano
 -lib stx_log
+-lib stx_fn
+-lib stx_assert
 
--lib utest
 -lib stx_assert
 
 -lib hx3compat

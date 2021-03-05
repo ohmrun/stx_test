@@ -13,12 +13,18 @@
     "version": "0.1.0",
     "url": "https://github.com/ohmrun/stx_test",
     "dependencies": {
-        "tink_core": "git:https://github.com/haxetink/tink_core.git",
-        "hx3compat": "git:https://github.com/HaxeFoundation/hx3compat.git",
-        "utest"    : "git:https://github.com/haxe-utest/utest.git",
-        "stx_pico" : "git:https://github.com/ohmrun/stx_pico.git",
+        "tink_core"     : "git:https://github.com/haxetink/tink_core.git",
+        "hx3compat"     : "git:https://github.com/HaxeFoundation/hx3compat.git",
+
+        "console.hx"    : "git:https://github.com/haxiomic/console.hx.git",
+        "equals"        : "git:https://github.com/elnabo/equals.git",            
+        "utest"         : "git:https://github.com/haxe-utest/utest.git",
+
+        "stx_pico"      : "git:https://github.com/ohmrun/stx_pico.git",
+        "stx_nano"      : "git:https://github.com/ohmrun/stx_nano.git",
+        "stx_fn"        : "git:https://github.com/ohmrun/stx_fn.git",
         "stx_assert"    : "git:https://github.com/ohmrun/stx_assert.git",
-        "stx_log"    : "git:https://github.com/ohmrun/stx_log.git"
+        "stx_log"       : "git:https://github.com/ohmrun/stx_log.git"
     },
     "classPath": "src/main/haxe"
 }
