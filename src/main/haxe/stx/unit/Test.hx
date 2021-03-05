@@ -89,23 +89,23 @@ typedef TestMethodOneDef      = Async->Void;
   public function done(){
     this.trigger(() -> {});
   }
-  public function wrap<T>(ft:Future<T>,?pos:Pos):Future<Res<T,TestFailure>>{
-    return new Future(
-      (cb) -> {
-        return try{
-          ft.handle(
-            (v) -> {
-              cb(__.accept(v));
-            }
-          );
-        }catch(e:Dynamic){
-          //trace(e);
-          cb(__.reject(__.fault(pos).of(TestRaisedError(e))));
-          return null;
-        }   
-      }
-    );
-  }
+  // public function wrap<T>(ft:Future<T>,?pos:Pos):Future<Res<T,TestFailure>>{
+  //   return new Future(
+  //     (cb) -> {
+  //       return try{
+  //         ft.handle(
+  //           (v) -> {
+  //             cb(__.accept(v));
+  //           }
+  //         );
+  //       }catch(e:Dynamic){
+  //         //trace(e);
+  //         cb(__.reject(__.fault(pos).of(TestRaisedError(e))));
+  //         return null;
+  //       }   
+  //     }
+  //   );
+  // }
 }
 private class Timeout{
   static public function make(method_call:MethodCall,timeout){
@@ -150,7 +150,6 @@ class Runner{
           (next:MethodCall,memo:Array<MethodCall>) -> {
             //trace(next);
             var result = next.call();
-            //trace(result);
             return (switch(result){
               case None       : Future.sync(memo.cons(next));
               case Some(ft)   : ft.asFuture().map(
@@ -242,17 +241,17 @@ class Assert{
   public function raise(error:Dynamic,?pos:Pos){
     assert(Assertion.make(false,Std.string(error),TestRaisedError(error),pos));
   }
-  public function capture<T>(ft:Future<Res<T,TestFailure>>){
-    return ft.map(
-      (res) -> res.fold(
-        ok ->  Some(ok),
-        no -> {
-          raise(no,no.pos);
-          return None;
-        }
-      )
-    );
-  }
+  // public function capture<T>(ft:Future<Res<T,TestFailure>>){
+  //   return ft.map(
+  //     (res) -> res.fold(
+  //       ok ->  Some(ok),
+  //       no -> {
+  //         raise(no,no.pos);
+  //         return None;
+  //       }
+  //     )
+  //   );
+  // }
   public function pass(?pos:Pos){
     assert(Assertion.make(true,'assertion passed',NullTestFailure,pos));
   }
@@ -289,6 +288,11 @@ class AnnotatedMethodCall extends MethodCall{
     );
   }
 }
+enum FnType{
+  ZeroZero;
+  ZeroOne;
+  OneZero;
+}
 class TestCaseLift{
   static public function get_tests<T:TestCase>(v:T){
     var rtti          = Rtti.getRtti(std.Type.getClass(v));
@@ -297,12 +301,12 @@ class TestCaseLift{
     var applications  = test_fields.map_filter(
       (cf) -> switch(cf.type){
         case CFunction([],CAbstract('Void',[]))            : 
-          Some(get_test(v,rtti,cf,false));
+          Some(get_test(v,rtti,cf,ZeroZero));
         case CFunction([],CAbstract('stx.unit.Async',[]))  : 
-          Some(get_test(v,rtti,cf,false)
+          Some(get_test(v,rtti,cf,ZeroOne)
           );
         case CFunction([{ t : CAbstract('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
-          Some(get_test(v,rtti,cf,true));
+          Some(get_test(v,rtti,cf,OneZero));
         case CFunction(_,_)  :
           throw 'test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"';
           None;
@@ -381,30 +385,52 @@ class TestCaseLift{
     var file      = def.file;
     return new AnnotatedMethodCall(test_case,file,type_name,name,call,classfield);
   }
-  static public function caller(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:Bool):TestMethodZero{
-    var call_zero = ()  -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
+  static public function caller(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:FnType):TestMethodZero{
+    var call_zero_zero = ()  -> {
+      Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
+    }
+    var call_zero_one = ()  -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
     var call_one  = (v) -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[v]);
 
-    function wrap(fn:Void->Option<Async>){
-      return try{
+    function wrap(fn:Void->Option<Async>):Void->Option<Async>{
+      return () -> try{
         fn();
       }catch(e:Dynamic){
         test_case.raise(TestRaisedError(e),get_pos(def,cf));
         return None;
       }
     }
+    var f0 = () -> { 
+      var async = Async.wait();
+      call_one(async);
+      trace(async);
+      return Some(async); 
+    }
+    //trace(len);
     return TestMethodZero.lift(
-      len.if_else(
-        () -> () -> { 
+      switch(len){
+        case ZeroZero : wrap(
+          () -> {
+            call_zero_zero();
+            return None;
+          }
+        );
+        case ZeroOne : wrap(
+          () -> {
+            var out = __.option(call_zero_one());
+            return out;
+          }
+        );  
+        case OneZero : wrap(() -> { 
+          //trace("_____");
           var async = Async.wait();
           call_one(async);
+          //trace(async);
           return Some(async); 
-        },
-        () -> () -> {
-          return call_zero();
-        } 
-      )
+        }); 
+      }
     );
+    //return TestMethodZero.lift(f0);
   }
 }
 class Reporter extends Clazz{ 
@@ -417,6 +443,8 @@ class Reporter extends Clazz{
 
     var red_cross  = '<red>✗</red>';
     var rtob       = '<bg_black>$red_cross</bg_black>';
+    var l0       = indenter('');
+    var l1       = indenter(l0);
 
     var tests     = 0;
     var warnings  = 0;
@@ -426,13 +454,12 @@ class Reporter extends Clazz{
       //trace(tcd.has_failures());
       //trace(@:privateAccess tcd.val.__assertions);
       //trace(@:privateAccess tcd.val.__assertions.failures);
+      final method_call_string_fn = (test:AnnotatedMethodCall) -> '<blue>${test.type}::${test.test}</blue>';
       if(tcd.has_failures()){
         Console.log('$rtob <light_white>${tcd.type.path}</light_white>');
         for(test in tcd.data){
-          var l0       = indenter('');
           
-          var l1       = indenter(l0);
-          final method_call_string = '<blue>${test.type}::${test.test}</blue>';
+          var method_call_string = method_call_string_fn(test);
 
           var failures = test.assertions.failures;
           //trace(@:privateAccess tcd.val.__assertions);
@@ -451,6 +478,10 @@ class Reporter extends Clazz{
         }
       }else{
         Console.log('$gtob  <light_white>${tcd.type.path}</light_white> ');
+        for(test in tcd.data){
+          var method_call_string = method_call_string_fn(test);
+          Console.log('$gtob ${l0}${method_call_string} ');
+        }
       }
     }
   }
@@ -502,8 +533,8 @@ class MethodCall{
     return 'MethodCall($type:$test[${asserts}])';
   }
 }
-class TestTest extends TestCase{
-  public function test_0(){
+class TestTestWorking extends TestCase{
+  public function test_2(){
     var async = Async.wait();
 
     haxe.Timer.delay(
@@ -513,40 +544,53 @@ class TestTest extends TestCase{
       300
     );
     return async;
+  }
+  public function test_0(){
+    pass();
   }
   public function test_1(){
     equals(1,1);
   }
-  public function test_raise(){
-    throw 'NONR';
-  }
-  public function test_asynchronous_raise(){
-    var async = Async.wait();
+}
+class TestTest extends TestCase{
+ 
+  // public function test_raise(){
+  //   throw 'NONR';
+  // }
+  // public function test_asynchronous_raise(){
+  //   var async = Async.wait();
 
-    haxe.Timer.delay(
-      () -> {
-        //throw "NOOOOO";//NOT handled, should bug out
-        async.done();
-      },
-      300
-    );
-    return async;
-  }
+  //   haxe.Timer.delay(
+  //     () -> {
+  //       //throw "NOOOOO";//NOT handled, should bug out
+  //       async.done();
+  //     },
+  //     300
+  //   );
+  //   return async;
+  // }
   public function test_asynchonous_captured_raise(){
     var ft = new Future(
       (cb) -> {
-        haxe.Timer.delay(
-          () -> {
-            throw "JBSDFJB";
-            cb(true);
-          },
-          300
-        );
+        // haxe.Timer.delay(
+        //   () -> {
+        //     throw "JBSDFJB";
+        //     cb(true);
+        //   },
+        //   300
+        // );
+        throw("JUB");
+        cb(true);
         return null;
       }
     );
     var async = Async.wait();
-    var ft    = this.capture(async.wrap(ft));
+    var ft    = ft;//this.capture(async.wrap(ft));
+        ft.handle(
+          (x)  -> {
+            trace(x);
+          }
+        );
     return async;
   }
   public function test_assertion(){

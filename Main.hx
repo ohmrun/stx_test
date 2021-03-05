@@ -5,7 +5,11 @@ class Main {
 	static function main() {
 		var test 	= new TestTest();
 		var results = new Runner().apply(
-			[new UseAsyncTest()]
+			[
+				new DependsTest(),
+				test,
+				new UseAsyncTest()
+			]
 		).handle(
 			(arr) -> {
 				new Reporter().report(arr);
