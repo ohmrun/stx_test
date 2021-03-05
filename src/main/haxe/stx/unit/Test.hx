@@ -335,7 +335,7 @@ class TestCaseLift{
           (s) -> applications.search(
             (application) -> application.test == s
           ).def(
-            () -> { throw "no method named `$s` available"; null; } 
+            () -> { throw 'no method named `$s` available'; null; } 
           )
         );
         return [application].concat(depends);
