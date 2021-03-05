@@ -331,7 +331,7 @@ class TestCaseLift{
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        var depends = application.depends().map(
+        var depends = __.tracer()(application.depends()).map(
           (s) -> applications.search(
             (application) -> application.test == s
           ).def(
