@@ -281,10 +281,17 @@ class AnnotatedMethodCall extends MethodCall{
     this.field = field;
   }
   public function depends(){
-    return field.meta.flat_map(
-      (x : { name : String, params : Array<String> }) -> x.name == 'depends' ? x.params : [] 
+    return field.meta.filter(
+      (x : { name : String, params : Array<String> }) -> x.name == 'depends'
+    ).flat_map(
+      (x : { name : String, params : Array<String> }) -> x.params 
     ).map(
-      s -> s.substr(1,-1)
+      s -> {
+        //trace(s);
+        var out = s.substr(1,s.length-2);
+        //trace(out);
+        return out;
+      }
     );
   }
 }
@@ -331,7 +338,10 @@ class TestCaseLift{
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        var depends = __.tracer()(application.depends()).map(
+        var dependencies = application.depends();
+        trace(dependencies.length);
+        trace(dependencies);
+        var depends = dependencies.map(
           (s) -> applications.search(
             (application) -> application.test == s
           ).def(
