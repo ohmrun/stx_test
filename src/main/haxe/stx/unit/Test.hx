@@ -3,11 +3,29 @@ package stx.unit;
 import equals.Equal as Equality;
 
 class Test{
-  static public function unit<T:TestCase>(wildcard:Wildcard,tests:Array<T>){
+  static public function unit<T:TestCase>(wildcard:Wildcard,tests:Array<T>,poke:Array<Dynamic>){
     var results = new Runner().apply(
-			tests
+      #if poke
+        tests.filter(stx.Test.poke(__,poke))
+      #else
+        tests
+      #end
 		).handle(
-      (x) -> new Reporter().report(x)
+      (x) -> {
+        new Reporter().report(x);
+        #if stx.test.shutdown.auto
+          #if (sys || hxnodejs)
+            Console.log('shutting down app...');
+            if(x.is_clean()){
+              Sys.exit(0);
+            }else{
+              Sys.exit(-1);
+            }
+          #else
+            #error
+          #end
+        #end
+      }
     );
   }
 }
@@ -88,8 +106,9 @@ class Runner{
     this.timeout = timeout;
   }
   public function apply<T:TestCase>(cases:Array<T>){
+    var normalized : Array<TestCase> = cases.map(x -> x.asTestCase());
     var a = __.nano().Ft().bind_fold(
-      cases.map(x -> x.asTestCase()),
+      normalized,
       (next:TestCase,memo:Array<TestCaseData>) -> {
         var test_case_data = @:privateAccess next.__stx__tests();
  
@@ -124,8 +143,28 @@ class Runner{
       []
     );
     //$type(a);
-    return a;
+    return a.map(
+      (tcd) -> return new TestSuite(normalized,tcd)
+    );
   } 
+}
+class TestSuite{
+  public final cases : Array<TestCase>;
+  public final data  : Array<TestCaseData>;
+  public function new(cases,data){
+    this.cases = cases;
+    this.data  = data;
+  } 
+  public function is_clean(){
+    var clean = true;
+    for(tcd in data){
+      if(tcd.has_failures()){
+        clean = false;
+        break;
+      }
+    }
+    return clean;
+  }
 }
 typedef AssertionDef = {
   var ?explanation  : String;
@@ -256,7 +295,7 @@ class TestCaseLift{
   }
 }
 class Reporter extends Clazz{ 
-  public function report(data:Array<TestCaseData>){
+  public function report(data:TestSuite){
     function indenter(indent){
       return '$indent\t';
     }
@@ -270,7 +309,7 @@ class Reporter extends Clazz{
     var warnings  = 0;
     var errors    = 0;
     var println = Sys.println;
-    for (tcd in data){
+    for (tcd in data.data){
       //trace(tcd.has_failures());
       //trace(@:privateAccess tcd.val.__assertions);
       //trace(@:privateAccess tcd.val.__assertions.failures);
