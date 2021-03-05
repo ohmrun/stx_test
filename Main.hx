@@ -5,7 +5,7 @@ class Main {
 	static function main() {
 		var test 	= new TestTest();
 		var results = new Runner().apply(
-			[test,new TestTest2()]
+			[new DependsTest()]
 		).handle(
 			(arr) -> {
 				new Reporter().report(arr);

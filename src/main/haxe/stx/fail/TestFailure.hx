@@ -6,4 +6,5 @@ enum TestFailure{
   TestFailedBecause(str:String);
   TestRaisedError(e:Dynamic);
   TestTimedOut;
+  NoTestNamed(name:String);
 }

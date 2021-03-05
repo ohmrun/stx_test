@@ -1,5 +1,6 @@
 package stx.unit;
 
+import haxe.ds.ArraySort;
 import equals.Equal as Equality;
 
 class Test{
@@ -241,6 +242,21 @@ class Assert{
     return this;
   }
 }
+class AnnotatedMethodCall extends MethodCall{
+  private final field : ClassField;
+
+  public function new(data,file,type,test,call,field){
+    super(data,file,type,test,call);
+    this.field = field;
+  }
+  public function depends(){
+    return field.meta.flat_map(
+      (x : { name : String, params : Array<String> }) -> x.name == 'depends' ? x.params : [] 
+    ).map(
+      s -> s.substr(1,-1)
+    );
+  }
+}
 class TestCaseLift{
   static public function get_tests<T:TestCase>(v:T){
     var rtti          = Rtti.getRtti(std.Type.getClass(v));
@@ -252,11 +268,67 @@ class TestCaseLift{
           Some(get_test(v,rtti,cf,cast TestMethod.fromVoid));
         case CFunction([],CAbstract('stx.unit.Async',[]))  : 
           Some(get_test(v,rtti,cf,cast TestMethod.fromAsync));
-        //case CFunction([],CAbstract('stx.unit.Async',[]))  :
+        case CFunction(_,_)  :
+          throw 'test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"';
+          None;
         default : None;
       }
     );
-    //trace(applications);
+    var names                = applications.map(
+      f -> f.test
+    );
+    function name_exists(name){
+      return names.any(
+       (n) -> n == name 
+      );
+    }
+    function depends_on(l:AnnotatedMethodCall,r:AnnotatedMethodCall){
+      return __.tracer()(l.depends().any(
+        (name) -> {
+          trace('${r.test} == $name');
+          return r.test == name;
+        } 
+      ));
+    }
+    var ordered_applications = applications.copy().map(
+      (application) -> {
+        var depends = application.depends().map(
+          (s) -> applications.search(
+            (application) -> application.test == s
+          ).def(
+            () -> { throw "no method named `$s` available"; null; } 
+          )
+        );
+        return [application].concat(depends);
+      }
+    );
+    function inner_order(l:Array<AnnotatedMethodCall>,r:Array<AnnotatedMethodCall>){
+      return l.tail().any(
+        (x:AnnotatedMethodCall) -> {
+          return r.any(
+            (y:AnnotatedMethodCall) -> {
+              return x.test == y.test; 
+            }
+          );
+        }
+      );
+    }
+    //trace(ordered_applications);
+    ArraySort.sort(
+      ordered_applications,
+      function(lhs:Array<AnnotatedMethodCall>,rhs:Array<AnnotatedMethodCall>){
+        return if(inner_order(lhs,rhs)){
+          -1;
+        }else if(inner_order(rhs,lhs)){
+          1;
+        }else{
+          0;
+        }
+      }
+    );
+    ordered_applications.reverse();
+    //trace(ordered_applications.map_filter( _ -> _.head()));
+
     return new TestCaseData(rtti,v.asTestCase(),applications);
   }
   static public function get_pos(def:Classdef,cf:ClassField):Pos{
@@ -267,14 +339,14 @@ class TestCaseLift{
       lineNumber : cf.line
     };
   }
-  static public function get_test(test_case:TestCase,def:Classdef,classfield,cons:Function->TestMethod){
+  static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,cons:Function->TestMethod){
     var name      = classfield.name;
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
     var calling   = caller(test_case,name);
     var test      = cons(calling);
     var call      = surpress(test_case,def,classfield,test);
     var file      = def.file;
-    return new MethodCall(test_case,file,type_name,name,call);
+    return new AnnotatedMethodCall(test_case,file,type_name,name,call,classfield);
   }
   static public function caller(test_case:TestCase,name:String):Function{
     return () -> {
@@ -345,7 +417,8 @@ class Reporter extends Clazz{
 class TestCaseData{
   public final type : Classdef;
   public final val  : TestCase;
-  public final data : Array<MethodCall>;
+  public final data : Array<AnnotatedMethodCall>;
+  
   public function new(type,val,data){
     this.type = type;
     this.val  = val;
@@ -363,7 +436,7 @@ class TestCaseData{
   }
 }
 class MethodCall{
-  public function new(data:TestCase,file:String,type,test,call){
+  public function new(data:TestCase,file:String,type:String,test:String,call:Void->Option<Async>){
     this.data       = data;
     this.file       = file;
     this.type       = type;
@@ -442,4 +515,21 @@ class TestTest extends TestCase{
 }
 class TestTest2 extends TestCase{
   
+}
+class DependsTest extends TestCase{
+  @depends("test_2")
+  public function test_1(){
+    pass();
+  }
+  @depends("test_3")
+  public function test_2(){
+    pass();
+  }
+  public function test_3(){
+    pass();
+  }
+  @depends("test_2","test_3")
+  public function test_4(){
+    pass();
+  }
 }
