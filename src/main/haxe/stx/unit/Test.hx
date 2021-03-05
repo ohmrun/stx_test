@@ -5,21 +5,21 @@ class Test{
     var results = new Runner().apply(
 			tests
 		).handle(
-      (x) -> new Reporter().report(x);
+      (x) -> new Reporter().report(x)
     );
   }
 }
-typedef TestFailure = stx.fail.TestFailure;
-typedef TestDef     = Void->Option<Async>;
+typedef TestFailure       = stx.fail.TestFailure;
+typedef TestMethodDef     = Void->Option<Async>;
 
-@:callable abstract Test(TestDef) from TestDef to TestDef{
-  @:noUsing static public function fromVoid(fn:Void->Void):Test{
+@:callable abstract TestMethod(TestMethodDef) from TestMethodDef to TestMethodDef{
+  @:noUsing static public function fromVoid(fn:Void->Void):TestMethod{
     return () -> {
       fn();
       return None;
     }
   }
-  @:noUsing static public function fromAsync(fn:Void->Async):Test{
+  @:noUsing static public function fromAsync(fn:Void->Async):TestMethod{
     return () -> {
       return Some(fn());
     }
@@ -199,9 +199,9 @@ class TestCaseLift{
     var applications  = test_fields.map_filter(
       (cf) -> switch(cf.type){
         case CFunction([],CAbstract('Void',[]))            : 
-          Some(get_test(v,rtti,cf,cast Test.fromVoid));
+          Some(get_test(v,rtti,cf,cast TestMethod.fromVoid));
         case CFunction([],CAbstract('stx.unit.Async',[]))  : 
-          Some(get_test(v,rtti,cf,cast Test.fromAsync));
+          Some(get_test(v,rtti,cf,cast TestMethod.fromAsync));
         //case CFunction([],CAbstract('stx.unit.Async',[]))  :
         default : None;
       }
@@ -217,7 +217,7 @@ class TestCaseLift{
       lineNumber : cf.line
     };
   }
-  static public function get_test(test_case:TestCase,def:Classdef,classfield,cons:Function->Test){
+  static public function get_test(test_case:TestCase,def:Classdef,classfield,cons:Function->TestMethod){
     var name      = classfield.name;
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
     var calling   = caller(test_case,name);
@@ -232,7 +232,7 @@ class TestCaseLift{
       return Reflect.callMethod(test_case,Reflect.field(test_case,name),[]);
     }
   }
-  static public function surpress(test_case:TestCase,def:Classdef,cf:ClassField,fn:Test):Test{
+  static public function surpress(test_case:TestCase,def:Classdef,cf:ClassField,fn:TestMethod):TestMethod{
     return () -> {
       return try{
         fn();
