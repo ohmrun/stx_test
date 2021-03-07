@@ -125,7 +125,7 @@ private class Timeout{
             if(!cancelled){
               @:privateAccess method_call.data.__assertions.push(
                 Assertion.make(false,
-                  'timeout',TestTimedOut,Position.make(method_call.file,method_call.type,method_call.test,null,null)
+                  'timeout',TestTimedOut(timeout),Position.make(method_call.file,method_call.type,method_call.test,null,null)
                 )
               );
             }
@@ -155,7 +155,7 @@ class Runner{
 
         var ft = __.nano().Ft().bind_fold(
           test_case_data.data,
-          (next:MethodCall,memo:Array<MethodCall>) -> {
+          (next:AnnotatedMethodCall,memo:Array<MethodCall>) -> {
             //trace(next);
             var before = Async.reform(test_case.__before());
             return before.flatMap(
@@ -168,7 +168,7 @@ class Runner{
                       //trace(x);
                       return x;
                     }
-                  ).first(Timeout.make(next,timeout)).map(
+              ).first(Timeout.make(next,next.timeout().defv(timeout))).map(
                     (cb) -> {
                       //trace("wake");
                       cb();
@@ -331,6 +331,15 @@ class AnnotatedMethodCall extends MethodCall{
       }
     );
   }
+  public function timeout():Option<Int>{
+    return field.meta.search(
+      (x) -> x.name == 'timeout'
+    ).flat_map(
+      (x) -> __.option(x.params).defv([]).head()
+    ).map(
+      Std.parseInt
+    );
+  }
 }
 enum FnType{
   ZeroZero;
@@ -375,9 +384,9 @@ class TestCaseLift{
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        var depends = application.depends().map(
-        trace(dependencies.length);
-        trace(dependencies);
+        var dependencies = application.depends();
+        //trace(dependencies.length);
+        //trace(dependencies);
         var depends = dependencies.map(
           (s) -> applications.search(
             (application) -> application.test == s

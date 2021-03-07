@@ -5,6 +5,6 @@ enum TestFailure{
   WhileAsserting(?description:String,failure:TestFailure);
   TestFailedBecause(str:String);
   TestRaisedError(e:Dynamic);
-  TestTimedOut;
+  TestTimedOut(after:Int);
   NoTestNamed(name:String);
 }
