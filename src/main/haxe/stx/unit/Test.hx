@@ -89,6 +89,13 @@ typedef TestMethodOneDef      = Async->Void;
   public function done(){
     this.trigger(() -> {});
   }
+  static public function reform(option:Option<Async>):Future<Void->Void>{
+    return option.map(
+      (x:FutureTrigger<Void->Void>) -> x.asFuture()
+    ).defv(
+      Future.sync(()->{})
+    );
+  }
   // public function wrap<T>(ft:Future<T>,?pos:Pos):Future<Res<T,TestFailure>>{
   //   return new Future(
   //     (cb) -> {
@@ -142,35 +149,53 @@ class Runner{
     var normalized : Array<TestCase> = cases.map(x -> x.asTestCase());
     var a = __.nano().Ft().bind_fold(
       normalized,
-      (next:TestCase,memo:Array<TestCaseData>) -> {
-        var test_case_data = @:privateAccess next.__stx__tests();
- 
+      (test_case:TestCase,memo:Array<TestCaseData>) -> {
+        var test_case_data = @:privateAccess test_case.__stx__tests();
+        var setup          = Async.reform(test_case.__setup());
+
         var ft = __.nano().Ft().bind_fold(
           test_case_data.data,
           (next:MethodCall,memo:Array<MethodCall>) -> {
             //trace(next);
-            var result = next.call();
-            return (switch(result){
-              case None       : Future.sync(memo.cons(next));
-              case Some(ft)   : ft.asFuture().map(
-                (x) -> {
-                  //trace(x);
-                  return x;
-                }
-              ).first(Timeout.make(next,timeout)).map(
-                (cb) -> {
-                  //trace("wake");
-                  cb();
-                  //trace("woke");
-                  return memo.snoc(next);
-                }
-              );
-            });
+            var before = Async.reform(test_case.__before());
+            return before.flatMap(
+              (_) -> {
+                var result = next.call();
+                return (switch(result){
+                  case None       : Future.sync(memo.cons(next));
+                  case Some(ft)   : ft.asFuture().map(
+                    (x) -> {
+                      //trace(x);
+                      return x;
+                    }
+                  ).first(Timeout.make(next,timeout)).map(
+                    (cb) -> {
+                      //trace("wake");
+                      cb();
+                      //trace("woke");
+                      return memo.snoc(next);
+                    }
+                  );
+                });
+              } 
+            ).flatMap(
+              (res) -> {
+                var after = Async.reform(test_case.__after());
+                return after.map(
+                  (_) -> res
+                );
+              }
+            );
           },[]
         ).map(
           x -> Noise
         );
-        return ft.map((_) -> memo.snoc(test_case_data));
+        return ft.flatMap(
+          (x) -> {
+            var teardown  = Async.reform(test_case.__teardown());
+            return teardown.map(_ -> x);
+          }
+        ).map((_) -> memo.snoc(test_case_data));
       },
       []
     );
@@ -269,6 +294,18 @@ class Assert{
   private function __stx__tests(){
     return TestCaseLift.get_tests(this);
   }
+  public function __setup():Option<Async>{
+    return None;
+  }
+  public function __teardown():Option<Async>{
+    return None;
+  }
+  public function __before():Option<Async>{
+    return None;
+  }
+  public function __after():Option<Async>{
+    return None;
+  }
   public function asTestCase():TestCase{
     return this;
   }
@@ -338,7 +375,7 @@ class TestCaseLift{
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        var dependencies = application.depends();
+        var depends = application.depends().map(
         trace(dependencies.length);
         trace(dependencies);
         var depends = dependencies.map(
