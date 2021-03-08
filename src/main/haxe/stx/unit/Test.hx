@@ -31,7 +31,7 @@ class Test{
   }
 }
 typedef TestFailure           = stx.fail.TestFailure;
-enum TestMethodSum{
+enum TestMethodSum {
   TMZero(m:TestMethodZero);
   TMOne(m:TestMethodOne);
 }
