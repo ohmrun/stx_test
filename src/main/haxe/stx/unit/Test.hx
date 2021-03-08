@@ -125,7 +125,7 @@ private class Timeout{
             if(!cancelled){
               @:privateAccess method_call.data.__assertions.push(
                 Assertion.make(false,
-                  'timeout',TestTimedOut,Position.make(method_call.file,method_call.type,method_call.test,null,null)
+                  'timeout',TestTimedOut(timeout),Position.make(method_call.file,method_call.type,method_call.test,null,null)
                 )
               );
             }
@@ -155,7 +155,7 @@ class Runner{
 
         var ft = __.nano().Ft().bind_fold(
           test_case_data.data,
-          (next:MethodCall,memo:Array<MethodCall>) -> {
+          (next:AnnotatedMethodCall,memo:Array<MethodCall>) -> {
             //trace(next);
             var before = Async.reform(test_case.__before());
             return before.flatMap(
@@ -168,7 +168,7 @@ class Runner{
                       //trace(x);
                       return x;
                     }
-                  ).first(Timeout.make(next,timeout)).map(
+              ).first(Timeout.make(next,next.timeout().defv(timeout))).map(
                     (cb) -> {
                       //trace("wake");
                       cb();
@@ -318,10 +318,26 @@ class AnnotatedMethodCall extends MethodCall{
     this.field = field;
   }
   public function depends(){
-    return field.meta.flat_map(
-      (x : { name : String, params : Array<String> }) -> x.name == 'depends' ? x.params : [] 
+    return field.meta.filter(
+      (x : { name : String, params : Array<String> }) -> x.name == 'depends'
+    ).flat_map(
+      (x : { name : String, params : Array<String> }) -> x.params 
     ).map(
-      s -> s.substr(1,-1)
+      s -> {
+        //trace(s);
+        var out = s.substr(1,s.length-2);
+        //trace(out);
+        return out;
+      }
+    );
+  }
+  public function timeout():Option<Int>{
+    return field.meta.search(
+      (x) -> x.name == 'timeout'
+    ).flat_map(
+      (x) -> __.option(x.params).defv([]).head()
+    ).map(
+      Std.parseInt
     );
   }
 }
@@ -368,7 +384,10 @@ class TestCaseLift{
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        var depends = application.depends().map(
+        var dependencies = application.depends();
+        //trace(dependencies.length);
+        //trace(dependencies);
+        var depends = dependencies.map(
           (s) -> applications.search(
             (application) -> application.test == s
           ).def(
