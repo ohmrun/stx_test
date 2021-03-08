@@ -405,24 +405,19 @@ class TestCaseLift{
     ordered_applications.reverse();
     var reordered_applications = ordered_applications.map_filter( _ -> _.head());
 
-    return new TestCaseData(rtti,v.asTestCase(),reordered_applications);
+  return new TestCaseData(rtti,v.asTestCase(),reordered_applications);
   }
   static public function get_pos(def:Classdef,cf:ClassField):Pos{
-    return {
-      fileName   : def.file,
-      className  : def.path,
-      methodName : cf.name,
-      lineNumber : cf.line
-    };
+    return Position.make(def.file,def.path,cf.name,cf.line);
   }
   static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,size){
     var name      = classfield.name;
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
-    var call      = caller(test_case,name,def,classfield,size);
+    var call      = make_call(test_case,name,def,classfield,size);
     var file      = def.file;
     return new AnnotatedMethodCall(test_case,file,type_name,name,call,classfield);
   }
-  static public function caller(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:FnType):TestMethodZero{
+  static private function make_call(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:FnType):TestMethodZero{
     var call_zero_zero = ()  -> {
       Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
     }
@@ -486,7 +481,7 @@ class Reporter extends Clazz{
     var tests     = 0;
     var warnings  = 0;
     var errors    = 0;
-    var println = Sys.println;
+    var println   = Sys.println;
     for (tcd in data.data){
       //trace(tcd.has_failures());
       //trace(@:privateAccess tcd.val.__assertions);
@@ -562,7 +557,7 @@ class MethodCall{
   public var assertions(get,null):Assertions;
   private function get_assertions():Assertions{
     return @:privateAccess this.data.__assertions.filter(
-      (x) -> x.pos.methodName == test
+      (x) -> (x.pos:Position).methodName == test
     );
   }
   public function toString(){
