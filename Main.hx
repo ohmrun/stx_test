@@ -8,7 +8,8 @@ class Main {
 			[
 				new DependsTest(),
 				test,
-				new UseAsyncTest()
+				new UseAsyncTest(),
+				new SynchronousErrorTest()
 			]
 		).handle(
 			(arr) -> {
