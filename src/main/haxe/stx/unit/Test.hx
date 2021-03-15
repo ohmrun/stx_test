@@ -690,3 +690,8 @@ class UseAsyncTest extends TestCase{
     pass();
   }
 }
+class SynchronousErrorTest extends TestCase{
+  public function test(){
+    throw "caught";
+  }
+}
