@@ -82,6 +82,24 @@ typedef TestMethodOneDef      = Async->Void;
   var pos : Pos;
   var val : T;
 }
+abstract WrappedFuture<T>(Future<Couple<Pos,Res<T,TestFailure>>>){
+  static public function lift<T>(self:Future<Couple<Pos,Res<T,TestFailure>>>) return new WrappedFuture(self); 
+  public function new(self) this = self;
+  public function capture(test_case:TestCase):CapturedFuture<T>{
+    return CapturedFuture.lift(this.map(
+      __.decouple(
+        (pos:Pos,res:Res<T,TestFailure>) -> res.fold(
+          ok -> __.triple(pos,test_case,AsyncResult.pure(ok)),
+          no -> {
+            test_case.error(no);
+            __.triple(pos,test_case,AsyncResult.unit());
+          } 
+        )  
+      )
+    ));
+  }
+}
+
 @:forward(asFuture) abstract Async(FutureTrigger<Void->Void>) from FutureTrigger<Void->Void> to FutureTrigger<Void->Void>{
   static public function wait():Async{
     return Future.trigger();
@@ -96,23 +114,23 @@ typedef TestMethodOneDef      = Async->Void;
       Future.sync(()->{})
     );
   }
-  // public function wrap<T>(ft:Future<T>,?pos:Pos):Future<Res<T,TestFailure>>{
-  //   return new Future(
-  //     (cb) -> {
-  //       return try{
-  //         ft.handle(
-  //           (v) -> {
-  //             cb(__.accept(v));
-  //           }
-  //         );
-  //       }catch(e:Dynamic){
-  //         //trace(e);
-  //         cb(__.reject(__.fault(pos).of(TestRaisedError(e))));
-  //         return null;
-  //       }   
-  //     }
-  //   );
-  // }
+  public function wrap<T>(ft:Future<T>,?pos:Pos):WrappedFuture<T>{
+    return WrappedFuture.lift(new Future(
+      (cb) -> {
+        return try{
+          ft.handle(
+            (v) -> {
+              cb(__.couple(pos,__.accept(v)));
+            }
+          );
+        }catch(e:Dynamic){
+          //trace(e);
+          cb(__.couple(pos,__.reject(__.fault(pos).of(TestRaisedError(e)))));
+          return null;
+        }   
+      }
+    ));
+  }
 }
 private class Timeout{
   static public function make(method_call:MethodCall,timeout){
@@ -260,6 +278,62 @@ typedef AssertionDef = {
     );
   }
 }
+abstract AsyncResult<T>(Option<T>) from Option<T>{
+  static public function lift<T>(self:Option<T>):AsyncResult<T>{
+    return self;
+  }
+  static public function pure<T>(v:T):AsyncResult<T>{
+    return lift(Some(v));
+  }
+  static public function unit<T>():AsyncResult<T>{
+    return lift(None);
+  }
+  public function tap(fn:T->Void):Void{
+    this.fold(
+      (x) -> fn(x),
+      ()  -> {}
+    );
+  }
+  public function use(fn:T->Null<Report<TestFailure>>,?nil:Void->Null<Report<TestFailure>>):Report<TestFailure>{
+    return this.fold(
+      (ok) -> __.option(fn(ok)).fold(
+        ok -> ok,
+        () -> Report.unit()
+      ),
+      ()   -> __.option(nil).flat_map(fn -> __.option(fn()).defv(Report.unit()))
+    );
+  }
+}
+abstract CapturedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Future<Triple<Pos,TestCase,AsyncResult<T>>>{
+  public function new(self) this = self;
+  public function handle(cb:AsyncResult<T>->Null<Report<TestFailure>>,?async:Async):tink.core.Callback.CallbackLink{
+    var link = this.handle(
+      (x) -> {
+        try{
+          final report = __.option(cb(x.thd())).defv(Report.unit());
+                report.fold(
+                  (v) -> x.snd().error(v),
+                  ()  -> {}
+                );
+        }catch(e:Err<Dynamic>){
+          x.snd().error(__.fault(x.fst()).of(WhileCalling(e)));
+        }catch(e:Dynamic){
+          x.snd().error(__.fault(x.fst()).of(TestRaisedError(e)));
+        }
+      }
+    );
+    if(async != null){
+      async.done();
+    }
+    return link;
+  }
+  static public function lift<T>(self:Future<Triple<Pos,TestCase,AsyncResult<T>>>):CapturedFuture<T>{
+    return new CapturedFuture(self); 
+  }
+  public function prj():Future<Triple<Pos,TestCase,AsyncResult<T>>> return this;
+  private var self(get,never):CapturedFuture<T>;
+  private function get_self():CapturedFuture<T> return this;
+}
 class Assert{
   final __assertions : Assertions;
   public function new(){
@@ -274,17 +348,6 @@ class Assert{
   public function raise(error:Dynamic,?pos:Pos){
     assert(Assertion.make(false,Std.string(error),TestRaisedError(error),pos));
   }
-  // public function capture<T>(ft:Future<Res<T,TestFailure>>){
-  //   return ft.map(
-  //     (res) -> res.fold(
-  //       ok ->  Some(ok),
-  //       no -> {
-  //         raise(no,no.pos);
-  //         return None;
-  //       }
-  //     )
-  //   );
-  // }
   public function pass(?pos:Pos){
     assert(Assertion.make(true,'assertion passed',NullTestFailure,pos));
   }
@@ -320,6 +383,9 @@ class Assert{
   public function asTestCase():TestCase{
     return this;
   }
+  public function capture<T>(ft:WrappedFuture<T>):CapturedFuture<T>{
+    return ft.capture(this);
+  }
 }
 class AnnotatedMethodCall extends MethodCall{
   private final field : ClassField;
@@ -335,9 +401,7 @@ class AnnotatedMethodCall extends MethodCall{
       (x : { name : String, params : Array<String> }) -> x.params 
     ).map(
       s -> {
-        //trace(s);
         var out = s.substr(1,s.length-2);
-        //trace(out);
         return out;
       }
     );
@@ -395,7 +459,28 @@ class TestCaseLift{
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        var dependencies = application.depends();
+        function get_depends(application:AnnotatedMethodCall,?stack:Array<String>):Array<String>{
+          stack = __.option(stack).defv([]);
+          var dependencies : Array<Couple<String,AnnotatedMethodCall>> = application.depends().map(
+            string -> __.couple(string,applications.search((application) -> application.test == string))
+          ).map(
+            __.decouple(
+              (string,option:Option<AnnotatedMethodCall>) -> {
+                var value = option.fudge(__.fault().any('no dependency $string'));
+                return __.couple(string,value); 
+              }  
+            )  
+          );
+          return dependencies.filter(
+            (couple) -> !stack.any(name -> couple.fst() == name)
+          ).flat_map(
+            (couple:Couple<String,AnnotatedMethodCall>) -> couple.snd().depends().is_defined().if_else(
+              () -> get_depends(couple.snd(),dependencies.map(cp -> cp.fst())),
+              () -> stack
+            )
+          );
+        }
+        var dependencies : Array<String> = get_depends(application);
         //trace(dependencies.length);
         //trace(dependencies);
         var depends = dependencies.map(
@@ -409,7 +494,7 @@ class TestCaseLift{
       }
     );
     function inner_order(l:Array<AnnotatedMethodCall>,r:Array<AnnotatedMethodCall>){
-      return l.tail().any(
+      return l.any(
         (x:AnnotatedMethodCall) -> {
           return r.any(
             (y:AnnotatedMethodCall) -> {
