@@ -160,24 +160,31 @@ class Runner{
             var before = Async.reform(test_case.__before());
             return before.flatMap(
               (_) -> {
-                var result = next.call();
-                return (switch(result){
-                  case None       : Future.sync(memo.cons(next));
-                  case Some(ft)   : ft.asFuture().map(
-                    (x) -> {
-                      //trace(x);
-                      return x;
-                    }
-              ).first(Timeout.make(next,next.timeout().defv(timeout))).map(
-                    (cb) -> {
-                      //trace("wake");
-                      cb();
-                      //trace("woke");
-                      return memo.snoc(next);
+                return try{
+                  var result = next.call();
+                  switch(result){
+                    case None       : Future.sync(()->{});
+                    case Some(ft)   : ft.asFuture();
+                  }
+                }catch(e:Err<Dynamic>){
+                  Future.sync(
+                    () -> {
+                      next.data.error(e);
                     }
                   );
-                });
-              } 
+                }catch(e:Dynamic){
+                  Future.sync(  
+                    () -> {
+                      next.data.error(__.fault().of(TestRaisedError(e)));
+                    }
+                  );
+                }
+            }).first(
+                Timeout.make(next,next.timeout().defv(timeout))).map(
+                (cb) -> {
+                  cb();
+                  return memo.snoc(next);
+                }
             ).flatMap(
               (res) -> {
                 var after = Async.reform(test_case.__after());
@@ -186,7 +193,8 @@ class Runner{
                 );
               }
             );
-          },[]
+          }
+          ,[]
         ).map(
           x -> Noise
         );
@@ -282,6 +290,9 @@ class Assert{
   }
   public function fail(reason="force fail",?pos:Pos){
     assert(Assertion.make(false,reason,null,pos));
+  }
+  public function error(err:Err<Dynamic>){
+    assert(Assertion.make(false,err.data.toString(),WhileCalling(err),err.pos));
   }
   public function same<T>(lhs:T,rhs:T,?explanation='should be the same',?pos:Pos){
     assert(Assertion.make(Equality.equals(lhs,rhs),explanation,null,pos));
