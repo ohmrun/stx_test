@@ -6,11 +6,11 @@ import equals.Equal as Equality;
 class Test{
   static public function unit<T:TestCase>(wildcard:Wildcard,tests:Array<T>,poke:Array<Dynamic>){
     var results = new Runner().apply(
-      #if poke
-        tests.filter(stx.Test.poke(__,poke))
-      #else
-        tests
-      #end
+      if (stx.sys.Env.get("POKE").is_defined()){
+        tests.filter(stx.Test.poke(__,poke));
+      }else{
+        tests;
+      }
 		).handle(
       (x) -> {
         new Reporter().report(x);
@@ -82,24 +82,6 @@ typedef TestMethodOneDef      = Async->Void;
   var pos : Pos;
   var val : T;
 }
-abstract WrappedFuture<T>(Future<Couple<Pos,Res<T,TestFailure>>>){
-  static public function lift<T>(self:Future<Couple<Pos,Res<T,TestFailure>>>) return new WrappedFuture(self); 
-  public function new(self) this = self;
-  public function capture(test_case:TestCase):CapturedFuture<T>{
-    return CapturedFuture.lift(this.map(
-      __.decouple(
-        (pos:Pos,res:Res<T,TestFailure>) -> res.fold(
-          ok -> __.triple(pos,test_case,AsyncResult.pure(ok)),
-          no -> {
-            test_case.error(no);
-            __.triple(pos,test_case,AsyncResult.unit());
-          } 
-        )  
-      )
-    ));
-  }
-}
-
 @:forward(asFuture) abstract Async(FutureTrigger<Void->Void>) from FutureTrigger<Void->Void> to FutureTrigger<Void->Void>{
   static public function wait():Async{
     return Future.trigger();
@@ -113,23 +95,6 @@ abstract WrappedFuture<T>(Future<Couple<Pos,Res<T,TestFailure>>>){
     ).defv(
       Future.sync(()->{})
     );
-  }
-  public function wrap<T>(ft:Future<T>,?pos:Pos):WrappedFuture<T>{
-    return WrappedFuture.lift(new Future(
-      (cb) -> {
-        return try{
-          ft.handle(
-            (v) -> {
-              cb(__.couple(pos,__.accept(v)));
-            }
-          );
-        }catch(e:Dynamic){
-          //trace(e);
-          cb(__.couple(pos,__.reject(__.fault(pos).of(TestRaisedError(e)))));
-          return null;
-        }   
-      }
-    ));
   }
 }
 private class Timeout{
@@ -174,15 +139,17 @@ class Runner{
         var ft = __.nano().Ft().bind_fold(
           test_case_data.data,
           (next:AnnotatedMethodCall,memo:Array<MethodCall>) -> {
-            //trace(next);
+            //trace(next.test);
             var before = Async.reform(test_case.__before());
             return before.flatMap(
               (_) -> {
                 return try{
                   var result = next.call();
+                  //trace(result);
                   switch(result){
-                    case None       : Future.sync(()->{});
-                    case Some(ft)   : ft.asFuture();
+                    case None                 : Future.sync(()->{});
+                    case Some(ft)             : ft.asFuture();
+                    case null                 : Future.sync(()->{});
                   }
                 }catch(e:Err<Dynamic>){
                   Future.sync(
@@ -296,17 +263,32 @@ abstract AsyncResult<T>(Option<T>) from Option<T>{
   }
   public function use(fn:T->Null<Report<TestFailure>>,?nil:Void->Null<Report<TestFailure>>):Report<TestFailure>{
     return this.fold(
-      (ok) -> __.option(fn(ok)).fold(
-        ok -> ok,
-        () -> Report.unit()
+      (ok) -> Util.or_res(fn.bind(ok)).fold(
+        (ok) -> __.option(ok).defv(__.report()),
+        (no) -> no.report()
       ),
-      ()   -> __.option(nil).flat_map(fn -> __.option(fn()).defv(Report.unit()))
+      ()   -> Util.or_res(__.option(nil).defv(()->__.report())).fold(
+        (ok) -> __.option(ok).defv(__.report()),
+        (no) -> no.report()
+      )
+    );
+  }
+  public function test(val:T->Void,?nil:Void->Null<Report<TestFailure>>,?pos:Pos){
+    return this.fold(
+      (ok) -> Util.or_res((val.bind(ok):Block).returning(null).prj()).fold(
+        (ok) -> __.report(),
+        (no) -> no.report()
+      ),
+      () -> Util.or_res((nil:Block).returning(null).prj()).fold(
+        (ok) -> __.report(NullTestFailure,pos),
+        (no) -> no.report()
+      )
     );
   }
 }
-abstract CapturedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Future<Triple<Pos,TestCase,AsyncResult<T>>>{
+abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Future<Triple<Pos,TestCase,AsyncResult<T>>>{
   public function new(self) this = self;
-  public function handle(cb:AsyncResult<T>->Null<Report<TestFailure>>,?async:Async):tink.core.Callback.CallbackLink{
+  public function consume(cb:AsyncResult<T>->Null<Report<TestFailure>>,?async:Async){
     var link = this.handle(
       (x) -> {
         try{
@@ -320,19 +302,18 @@ abstract CapturedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Fut
         }catch(e:Dynamic){
           x.snd().error(__.fault(x.fst()).of(TestRaisedError(e)));
         }
+        if(async != null){
+          async.done();
+        }
       }
     );
-    if(async != null){
-      async.done();
-    }
-    return link;
   }
-  static public function lift<T>(self:Future<Triple<Pos,TestCase,AsyncResult<T>>>):CapturedFuture<T>{
-    return new CapturedFuture(self); 
+  static public function lift<T>(self:Future<Triple<Pos,TestCase,AsyncResult<T>>>):WrappedFuture<T>{
+    return new WrappedFuture(self); 
   }
   public function prj():Future<Triple<Pos,TestCase,AsyncResult<T>>> return this;
-  private var self(get,never):CapturedFuture<T>;
-  private function get_self():CapturedFuture<T> return this;
+  private var self(get,never):WrappedFuture<T>;
+  private function get_self():WrappedFuture<T> return this;
 }
 class Assert{
   final __assertions : Assertions;
@@ -383,8 +364,26 @@ class Assert{
   public function asTestCase():TestCase{
     return this;
   }
-  public function capture<T>(ft:WrappedFuture<T>):CapturedFuture<T>{
-    return ft.capture(this);
+  public function wrap<T>(future:Future<T>,?pos:Pos):WrappedFuture<T>{
+    return WrappedFuture.lift(new Future(
+      (cb) -> {
+        return try{
+          future.handle(
+            (v) -> {
+              cb(__.triple(pos,this,AsyncResult.pure(v)));
+            }
+          );
+        }catch(e:Err<Dyn>){
+          this.error(e);
+          cb(__.triple(pos,this,AsyncResult.unit()));
+          null;
+        }catch(e:Dynamic){
+          this.error(__.fault(pos).of(TestRaisedError(e)));
+          cb(__.triple(pos,this,AsyncResult.unit())); 
+          null;
+        }
+      }
+    ));
   }
 }
 class AnnotatedMethodCall extends MethodCall{
@@ -450,16 +449,17 @@ class TestCaseLift{
       );
     }
     function depends_on(l:AnnotatedMethodCall,r:AnnotatedMethodCall){
-      return __.tracer()(l.depends().any(
+      return l.depends().any(
         (name) -> {
-          trace('${r.test} == $name');
+          //trace('${r.test} == $name');
           return r.test == name;
         } 
-      ));
+      );
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
         function get_depends(application:AnnotatedMethodCall,?stack:Array<String>):Array<String>{
+          //trace(application.test);
           stack = __.option(stack).defv([]);
           var dependencies : Array<Couple<String,AnnotatedMethodCall>> = application.depends().map(
             string -> __.couple(string,applications.search((application) -> application.test == string))
@@ -471,12 +471,14 @@ class TestCaseLift{
               }  
             )  
           );
+          //trace(dependencies.map(_ -> _.tup()));
+          //trace(stack);
           return dependencies.filter(
             (couple) -> !stack.any(name -> couple.fst() == name)
           ).flat_map(
             (couple:Couple<String,AnnotatedMethodCall>) -> couple.snd().depends().is_defined().if_else(
               () -> get_depends(couple.snd(),dependencies.map(cp -> cp.fst())),
-              () -> stack
+              () -> dependencies.map(cp ->cp.fst())
             )
           );
         }
@@ -509,15 +511,17 @@ class TestCaseLift{
       ordered_applications,
       function(lhs:Array<AnnotatedMethodCall>,rhs:Array<AnnotatedMethodCall>){
         return if(inner_order(lhs,rhs)){
-          -1;
-        }else if(inner_order(rhs,lhs)){
           1;
+        }else if(inner_order(rhs,lhs)){
+          -1;
         }else{
           0;
         }
       }
     );
-    ordered_applications.reverse();
+    //ordered_applications.reverse();
+    var reworked_applications  = ordered_applications.map_filter( _ -> _.head());
+    //trace(reworked_applications);
     var reordered_applications = ordered_applications.map_filter( _ -> _.head());
 
   return new TestCaseData(rtti,v.asTestCase(),reordered_applications);
@@ -550,7 +554,7 @@ class TestCaseLift{
     var f0 = () -> { 
       var async = Async.wait();
       call_one(async);
-      trace(async);
+      //trace(async);
       return Some(async); 
     }
     //trace(len);
@@ -678,6 +682,17 @@ class MethodCall{
   public function toString(){
     var asserts = assertions.map(x -> x.res());
     return 'MethodCall($type:$test[${asserts}])';
+  }
+}
+class Util{
+  static public function or_res<U>(fn:Void->U,?pos:Pos):Res<U,TestFailure>{
+    return try{
+      __.accept(fn());
+    }catch(e:Err<Dynamic>){
+      __.reject(e.map(WhileCalling));
+    }catch(e:Dynamic){
+      __.reject(__.fault(pos).of(TestRaisedError(e)));
+    }
   }
 }
 class TestTestWorking extends TestCase{
