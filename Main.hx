@@ -11,11 +11,11 @@ class Main {
 		#end
 		var signal = new Runner().apply(
 			[
-				new DependsTest(),
-				new TestTest(),
+				//new DependsTest(),
+				//new TestTest(),
 				new UseAsyncTest(),
-				new SynchronousErrorTest(),
-				new AsyncResultTest(),
+				//new SynchronousErrorTest(),
+				//new AsyncResultTest(),
 			]
 		);
 		new Reporter(signal).enact();

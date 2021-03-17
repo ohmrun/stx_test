@@ -8,4 +8,5 @@ package stx.unit.test;
       (x) -> x.outcome().fold(_ -> None,Some)
     );
   }
+  
 }

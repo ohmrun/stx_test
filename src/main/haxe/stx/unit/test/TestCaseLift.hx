@@ -8,21 +8,26 @@ class TestCaseLift{
     var applications  = test_fields.map_filter(
       (cf) -> switch(cf.type){
         case CFunction([],CAbstract('Void',[]))            : 
+          //__.log().debug('${cf.name} ZeroZero');
           Some(get_test(v,rtti,cf,ZeroZero));
-        case CFunction([],CAbstract('stx.unit.test.Async',[]))  : 
+        case CFunction([],CAbstract('stx.unit.test.Async',[]))  :
+          //__.log().debug('${cf.name} ZeroOne'); 
           Some(get_test(v,rtti,cf,ZeroOne));
         case CFunction([],CTypedef('stx.unit.Async',[]))  : 
-            Some(get_test(v,rtti,cf,ZeroOne));
+          //__.log().debug('${cf.name} ZeroOne');
+          Some(get_test(v,rtti,cf,ZeroOne));
         case CFunction([{ t : CTypedef('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
+          //__.log().debug('${cf.name} OneZero');
           Some(get_test(v,rtti,cf,OneZero));
         case CFunction([{ t : CAbstract('stx.unit.test.Async',[]) } ],CAbstract('Void',[])) :
+          //__.log().debug('${cf.name} OneZero');
           Some(get_test(v,rtti,cf,OneZero));
         case CFunction(_,_)  :
           var lines = [
             'In "${rtti.path}.${cf.name}"": test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"',
             Std.string(cf.type)
           ];
-          __.log().error(lines.join("\n"));
+          //__.log().error(lines.join("\n"));
           throw lines.join("\n");
           None;
         default : None;
@@ -123,7 +128,7 @@ class TestCaseLift{
       Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
     }
     var call_zero_one = ()  -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
-    var call_one  = (v) -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[v]);
+    var call_one      = (v) -> Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[v]);
 
     function wrap(fn:Void->Option<Async>):Void->Option<Async>{
       return () -> try{
@@ -133,12 +138,12 @@ class TestCaseLift{
         return None;
       }
     }
-    var f0 = () -> { 
-      var async = Async.wait();
-      call_one(async);
-      //trace(async);
-      return Some(async); 
-    }
+    // var f0 = () -> { 
+    //   var async = Async.wait();
+    //   call_one(async);
+    //   //trace(async);
+    //   return Some(async); 
+    // }
     //trace(len);
     return TestMethodZero.lift(
       switch(len){
@@ -155,10 +160,9 @@ class TestCaseLift{
           }
         );  
         case OneZero : wrap(() -> { 
-          //trace("_____");
           var async = Async.wait();
           call_one(async);
-          //trace(async);
+          //trace("async ONZERO");
           return Some(async); 
         }); 
       }

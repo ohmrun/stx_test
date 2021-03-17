@@ -1,10 +1,10 @@
 package stx.unit.test;
 
 class Reporter extends Clazz{ 
-  var signal : Signal<Chunk<TestPhaseSum,TestFailure>>;
-  public function new(signal){
+  var stream : Stream<TestPhaseSum,TestFailure>;
+  public function new(stream){
     super();
-    this.signal = signal;
+    this.stream = stream;
   }
   private function close(err:Err<Dynamic>){
     if(err != null){
@@ -92,12 +92,13 @@ class Reporter extends Clazz{
         case TP_ReportTestSuiteComplete(test_suite)       :
           println("_________________________________________________");
           for(test_case_data in test_suite.test_cases){
+            //trace(test_case_data.has_assertions());
             if(!test_case_data.has_assertions()){
               print_status(yellow_question_on_black,' <yellow>${test_case_data.clazz.path}</yellow>');
             }else if(!test_case_data.has_failures()){
               print_status(green_tick_on_black,' <green>${test_case_data.clazz.path}</green>');
             }else{
-              print_status(yellow_question_on_black,' <yellow>${test_case_data.clazz.path}</yellow>');
+              print_status(red_cross_on_black,' <red>${test_case_data.clazz.path}</red>');
             }
           }
           if(!test_suite.is_clean()){
@@ -108,7 +109,7 @@ class Reporter extends Clazz{
           closed = true;
       }
     }
-    this.signal.handle(
+    this.stream.handle(
       (chunk:Chunk<TestPhaseSum,TestFailure>) -> {
         chunk.fold(
           val -> serve(val),

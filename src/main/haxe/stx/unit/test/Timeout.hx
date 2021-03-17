@@ -1,12 +1,12 @@
 package stx.unit.test;
 
 class Timeout{
-  static public function make(method_call:MethodCall,timeout:Int){
-    trace('${haxe.Timer.stamp()}, make ${method_call.field.name}');
+  static public function make(method_call:MethodCall,timeout:Int):TestResult{
+    //trace('${haxe.Timer.stamp()}, make ${method_call.field.name}');
     var cancelled = false;
     return new Future(
       (cb) -> {
-        trace('${haxe.Timer.stamp()}, start ${method_call.field.name}');
+        //trace('${haxe.Timer.stamp()}, start ${method_call.field.name}');
         haxe.Timer.delay(
           function rec(){
             //trace('${haxe.Timer.stamp()}, done ${method_call.field.name}');
@@ -22,7 +22,7 @@ class Timeout{
                   )
                 );
                 cb(
-                  ()->{}
+                  TestEffect.unit()
                 );
               }else{
                 haxe.Timer.delay(rec,500);
@@ -31,7 +31,7 @@ class Timeout{
           }
         ,500);
         var cbl = function(){
-          __.log().debug('cancelled');
+          //__.log().debug('cancelled');
           cancelled = true;
         }
         return cbl;

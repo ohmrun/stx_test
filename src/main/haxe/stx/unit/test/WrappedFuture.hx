@@ -10,7 +10,7 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
             __.option(cb(x.thd())).defv(Report.unit()).fold(
               (e) -> {
                 var str = __.show(e.data);
-                __.log().debug('report ${str}');
+                //__.log().debug('report ${str}');
                 x.snd().error(e,x.fst());
               },
               ()  -> {}

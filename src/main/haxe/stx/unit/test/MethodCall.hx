@@ -20,6 +20,8 @@ class MethodCall{
     return res.fold(
       (ok:Option<Async>) -> Async.reform(ok),
       no -> TestEffect.fromErr(no)
+    ).first(
+      Timeout.make(this,2000)
     );
   }
   
@@ -63,6 +65,7 @@ class MethodCall{
     );
   }
   public function has_assertions(){
+    //trace(assertions.is_defined());
     return assertions.is_defined();
   }
   public function toString(){

@@ -23,9 +23,9 @@ class TestCaseData{
   public function has_assertions(){
     var bool = false;
     for(mc in method_calls){
-      if(mc.has_assertions()){
-        bool = true;
-        break; 
+      bool = mc.has_assertions();
+      if(bool){
+        break;
       }
     }
     return bool;
