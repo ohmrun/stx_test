@@ -8,8 +8,7 @@
 -lib stx_log
 -lib stx_fn
 -lib stx_assert
-
--lib stx_assert
+-lib stx_show
 
 -lib hx3compat
 -D poke

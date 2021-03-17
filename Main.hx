@@ -6,10 +6,11 @@ class Main {
 		var test 	= new TestTest();
 		var results = new Runner().apply(
 			[
-				new DependsTest(),
-				test,
-				new UseAsyncTest(),
-				new SynchronousErrorTest()
+				// new DependsTest(),
+				// test,
+				// new UseAsyncTest(),
+				// new SynchronousErrorTest(),
+				new AsyncResultTest(),
 			]
 		).handle(
 			(arr) -> {
