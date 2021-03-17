@@ -99,6 +99,14 @@ class Reporter extends Clazz{
               print_status(green_tick_on_black,' <green>${test_case_data.clazz.path}</green>');
             }else{
               print_status(red_cross_on_black,' <red>${test_case_data.clazz.path}</red>');
+              for(method_call in test_case_data.method_calls){
+                for(assertions in method_call){
+                  assertion.truth.if_else(
+                    () -> print_status(green_tick_on_black,'<green>$assertion</green>',l2),
+                    () -> print_status(red_cross_on_black,'<red>$assertion</red>',l2)
+                  );
+                }
+              }
             }
           }
           if(!test_suite.is_clean()){

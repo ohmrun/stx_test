@@ -18,5 +18,11 @@ typedef AssertionDef = {
   public function outcome():Outcome<String,TestFailure>{
     return this.truth ? __.success(this.explanation) : __.failure(this.failure);
   }
+  public function toString(){
+    return outcome().fold(
+      ok  -> ok,
+      e   -> __.show(e)
+    );
+  }
   public function new(self) this = self;
 }
