@@ -18,7 +18,7 @@ class Runner{
         var next  = sig.flat_map(
           (chunk) -> chunk.fold(
             val -> {
-              cb(Val(TP_StartTestCase(val)));
+              cb(Val(TP_StartTestCase(val)))-;
               return TestCaseDataRun.apply(val);
             },
             end -> __.option(end).fold(
