@@ -1,4 +1,5 @@
 -cp src/main/haxe
+-D no-deprecation-warnings
 
 -lib console.hx
 -lib equals 

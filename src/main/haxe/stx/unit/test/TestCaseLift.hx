@@ -9,43 +9,45 @@ class TestCaseLift{
       (cf) -> switch(cf.type){
         case CFunction([],CAbstract('Void',[]))            : 
           Some(get_test(v,rtti,cf,ZeroZero));
-        case CFunction([],CAbstract('stx.unit.Async',[]))  : 
-          Some(get_test(v,rtti,cf,ZeroOne)
-          );
-        case CFunction([{ t : CAbstract('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
+        case CFunction([],CAbstract('stx.unit.test.Async',[]))  : 
+          Some(get_test(v,rtti,cf,ZeroOne));
+        case CFunction([],CTypedef('stx.unit.Async',[]))  : 
+            Some(get_test(v,rtti,cf,ZeroOne));
+        case CFunction([{ t : CTypedef('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
+          Some(get_test(v,rtti,cf,OneZero));
+        case CFunction([{ t : CAbstract('stx.unit.test.Async',[]) } ],CAbstract('Void',[])) :
           Some(get_test(v,rtti,cf,OneZero));
         case CFunction(_,_)  :
-          throw 'test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"\n${cf.name}';
+          var lines = [
+            'In "${rtti.path}.${cf.name}"": test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"',
+            Std.string(cf.type)
+          ];
+          __.log().error(lines.join("\n"));
+          throw lines.join("\n");
           None;
         default : None;
       }
     );
-    var names                = applications.map(
-      f -> f.test
-    );
-    function name_exists(name){
-      return names.any(
-       (n) -> n == name 
-      );
-    }
-    function depends_on(l:AnnotatedMethodCall,r:AnnotatedMethodCall){
+    var names                = applications.map(f -> f.field.name);
+    function name_exists(name){return names.any((n) -> n == name );}
+    function depends_on(l:MethodCall,r:MethodCall){
       return l.depends().any(
         (name) -> {
           //trace('${r.test} == $name');
-          return r.test == name;
+          return r.field.name == name;
         } 
       );
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
-        function get_depends(application:AnnotatedMethodCall,?stack:Array<String>):Array<String>{
-          //trace(application.test);
+        function get_depends(application:MethodCall,?stack:Array<String>):Array<String>{
+          //trace(application.field.name);
           stack = __.option(stack).defv([]);
-          var dependencies : Array<Couple<String,AnnotatedMethodCall>> = application.depends().map(
-            string -> __.couple(string,applications.search((application) -> application.test == string))
+          var dependencies : Array<Couple<String,MethodCall>> = application.depends().map(
+            string -> __.couple(string,applications.search((application) -> application.field.name == string))
           ).map(
             __.decouple(
-              (string,option:Option<AnnotatedMethodCall>) -> {
+              (string,option:Option<MethodCall>) -> {
                 var value = option.fudge(__.fault().any('no dependency $string'));
                 return __.couple(string,value); 
               }  
@@ -56,7 +58,7 @@ class TestCaseLift{
           return dependencies.filter(
             (couple) -> !stack.any(name -> couple.fst() == name)
           ).flat_map(
-            (couple:Couple<String,AnnotatedMethodCall>) -> couple.snd().depends().is_defined().if_else(
+            (couple:Couple<String,MethodCall>) -> couple.snd().depends().is_defined().if_else(
               () -> get_depends(couple.snd(),dependencies.map(cp -> cp.fst())),
               () -> dependencies.map(cp ->cp.fst())
             )
@@ -67,29 +69,29 @@ class TestCaseLift{
         //trace(dependencies);
         var depends = dependencies.map(
           (s) -> applications.search(
-            (application) -> application.test == s
+            (application) -> application.field.name == s
           ).def(
-            () -> { throw 'no method named `$s` available on ${application.test}}'; null; } 
+            () -> { throw 'no method named `$s` available on ${application.field.name}}'; null; } 
           )
         );
         return [application].concat(depends);
       }
     );
-    function inner_order(l:Array<AnnotatedMethodCall>,r:Array<AnnotatedMethodCall>){
+    function inner_order(l:Array<MethodCall>,r:Array<MethodCall>){
       return l.any(
-        (x:AnnotatedMethodCall) -> {
+        (x:MethodCall) -> {
           return r.any(
-            (y:AnnotatedMethodCall) -> {
-              return x.test == y.test; 
+            (y:MethodCall) -> {
+              return x.field.name == y.field.name; 
             }
           );
         }
       );
     }
     //trace(ordered_applications);
-    ArraySort.sort(
+    haxe.ds.ArraySort.sort(
       ordered_applications,
-      function(lhs:Array<AnnotatedMethodCall>,rhs:Array<AnnotatedMethodCall>){
+      function(lhs:Array<MethodCall>,rhs:Array<MethodCall>){
         return if(inner_order(lhs,rhs)){
           1;
         }else if(inner_order(rhs,lhs)){
@@ -104,7 +106,7 @@ class TestCaseLift{
     //trace(reworked_applications);
     var reordered_applications = ordered_applications.map_filter( _ -> _.head());
 
-  return new TestCaseData(rtti,v.asTestCase(),reordered_applications);
+    return new TestCaseData(v.asTestCase(),rtti,reordered_applications);
   }
   static public function get_pos(def:Classdef,cf:ClassField):Pos{
     return Position.make(def.file,def.path,cf.name,cf.line);
@@ -114,7 +116,7 @@ class TestCaseLift{
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
     var call      = make_call(test_case,name,def,classfield,size);
     var file      = def.file;
-    return new AnnotatedMethodCall(test_case,file,type_name,name,call,classfield);
+    return new MethodCall(test_case,def,classfield,call);
   }
   static private function make_call(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:FnType):TestMethodZero{
     var call_zero_zero = ()  -> {

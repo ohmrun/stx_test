@@ -1,15 +1,13 @@
 package stx.unit.test;
 
 class TestSuite{
-  public final cases : Array<TestCase>;
-  public final data  : Array<TestCaseData>;
-  public function new(cases,data){
-    this.cases = cases;
-    this.data  = data;
+  public final test_cases  : Array<TestCaseData>;
+  public function new(test_cases){
+    this.test_cases = test_cases;
   } 
   public function is_clean(){
     var clean = true;
-    for(tcd in data){
+    for(tcd in test_cases){
       if(tcd.has_failures()){
         clean = false;
         break;

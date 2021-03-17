@@ -1,17 +1,15 @@
 package stx.unit.test;
 
-@:forward(asFuture) abstract Async(FutureTrigger<Void->Void>) from FutureTrigger<Void->Void> to FutureTrigger<Void->Void>{
+@:forward(asFuture) abstract Async(FutureTrigger<TestEffect>) from FutureTrigger<TestEffect> to FutureTrigger<TestEffect>{
   static public function wait():Async{
     return Future.trigger();
   }
   public function done(){
-    this.trigger(() -> {});
+    this.trigger(TestEffect.unit());
   }
-  static public function reform(option:Option<Async>):Future<Void->Void>{
+  static public function reform(option:Option<Async>):TestResult{
     return option.map(
-      (x:FutureTrigger<Void->Void>) -> x.asFuture()
-    ).defv(
-      Future.irreversible((cb) -> cb(()->{}))
-    );
+      (x:FutureTrigger<TestEffect>) -> x.asFuture()
+    ).def(TestResult.unit);
   }
 }

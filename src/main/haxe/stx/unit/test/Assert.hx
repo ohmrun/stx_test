@@ -23,6 +23,9 @@ class Assert{
   public function error(err:Err<Dynamic>,?pos:Pos){
     assert(Assertion.make(false,err.data.toString(),E_Test_Err(err),pos));
   }
+  public function test_error(reason:String,err:TestFailure,?pos:Pos){
+    assert(Assertion.make(false,reason,err,pos));
+  }
   public function same<T>(lhs:T,rhs:T,?explanation='should be the same',?pos:Pos){
     assert(Assertion.make(Equality.equals(lhs,rhs),explanation,null,pos));
   }

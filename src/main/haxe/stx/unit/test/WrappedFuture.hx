@@ -5,21 +5,22 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
   public function consume(cb:AsyncResult<T>->Null<Report<TestFailure>>,?async:Async){
     var link = this.handle(
       (x) -> {
-        try{
-          final report = __.option(cb(x.thd())).defv(Report.unit());
-                report.fold(
-                  (e) -> {
-                    var str = __.show(e.data);
-                    trace('report ${str}');
-                    x.snd().error(e,x.fst());
-                  },
-                  ()  -> {}
-                );
-        }catch(e:Err<Dynamic>){
-          x.snd().error(__.fault(x.fst()).of(E_Test_Err(e)),x.fst());
-        }catch(e:Dynamic){
-          x.snd().error(__.fault(x.fst()).of(E_Test_Dynamic(e)),x.fst());
-        }
+        Util.or_res(
+          () -> {
+            __.option(cb(x.thd())).defv(Report.unit()).fold(
+              (e) -> {
+                var str = __.show(e.data);
+                __.log().debug('report ${str}');
+                x.snd().error(e,x.fst());
+              },
+              ()  -> {}
+            );
+            return Noise;
+          }
+        ).fold(
+          (ok)  -> {},
+          (no) -> x.snd().error(__.fault(x.fst()).of(E_Test_Err(no)),x.fst())
+        );
         if(async != null){
           async.done();
         }

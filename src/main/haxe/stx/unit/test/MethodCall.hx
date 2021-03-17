@@ -1,33 +1,76 @@
 package stx.unit.test;
 
 class MethodCall{
-  public function new(data:TestCase,file:String,type:String,test:String,_call:TestMethodZero){
-    this.data         = data;
-    this.file         = file;
-    this.type         = type;
-    this.test         = test;
-    this.test         = test;
+  public function new(object:TestCase,clazz:Classdef,field:ClassField,_call:TestMethodZero){
+    this.object       = object;
+    this.clazz        = clazz;
+    this.field        = field;
     this._call        = _call;
   }
-  public var timestamp  : Float;
-  public final data     : TestCase;
-  public final file     : String;
-  public final type     : String;
-  public final test     : String;
-  public function call():Option<Async>{
+  public final object     : TestCase;
+  public final clazz      : Classdef;
+  public final field      : ClassField;
+  public final _call      : TestMethodZero;
+
+  public var timestamp    : Float;
+  
+  public function call():TestResult{
     this.timestamp = haxe.Timer.stamp();
-    return _call();
+    var res = Util.or_res(_call.prj());
+    return res.fold(
+      (ok:Option<Async>) -> Async.reform(ok),
+      no -> TestEffect.fromErr(no)
+    );
   }
-  public final _call     : TestMethodZero;
   
   public var assertions(get,null):Assertions;
   private function get_assertions():Assertions{
-    return @:privateAccess this.data.__assertions.filter(
-      (x) -> (x.pos:Position).methodName == test
+    return @:privateAccess this.object.__assertions.filter(
+      (x) -> (x.pos:Position).methodName == this.field.name
     );
   }
-  public function toString(){
-    var asserts = assertions.map(x -> x.res());
-    return 'MethodCall($type:$test[${asserts}])';
+  public function position():Position{
+    var parts       = this.clazz.path.split(".");
+    var fileName    = this.clazz.file;
+    var className   = parts[parts.length -1];
+    var methodName  = this.field.name;
+    var lineNumber  = this.field.line;
+    return Position.make(fileName,className,methodName,lineNumber);
   }
+  public var name(get,null):String;
+  private function get_name():String{
+    return field.name;
+  }
+  public function depends(){
+    return field.meta.filter(
+      (x : { name : String, params : Array<String> }) -> x.name == 'depends'
+    ).flat_map(
+      (x : { name : String, params : Array<String> }) -> x.params 
+    ).map(
+      s -> {
+        var out = s.substr(1,s.length-2);
+        return out;
+      }
+    );
+  }
+  public function timeout():Option<Int>{
+    return field.meta.search(
+      (x) -> x.name == 'timeout'
+    ).flat_map(
+      (x) -> __.option(x.params).defv([]).head()
+    ).map(
+      Std.parseInt
+    );
+  }
+  public function has_assertions(){
+    return assertions.is_defined();
+  }
+  public function toString(){
+    var location = this.clazz.path + this.field.name;
+    return 'MethodCall($location)';
+  }
+  // public function toString(){
+  //   var asserts = assertions.map(x -> x.res());
+  //   return 'MethodCall($clazz:${field.name}[${asserts}])';
+  // }
 }

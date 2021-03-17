@@ -1,5 +1,7 @@
+package stx.test;
+
 class AsyncResultTest extends TestCase{
-  public function test(async:Async){
+  public function test(async:Async):Void{
    var ft = Future.irreversible(
      (cb) -> cb(true)
    );

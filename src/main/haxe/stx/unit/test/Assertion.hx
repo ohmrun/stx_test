@@ -15,8 +15,8 @@ typedef AssertionDef = {
       pos           : pos
     });
   }
-  public function res():Res<String,TestFailure>{
-    return this.truth ? __.accept(this.explanation) : __.reject(__.fault(this.pos).of(this.failure));
+  public function outcome():Outcome<String,TestFailure>{
+    return this.truth ? __.success(this.explanation) : __.failure(this.failure);
   }
   public function new(self) this = self;
 }

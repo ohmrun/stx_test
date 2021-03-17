@@ -1,27 +1,23 @@
 import stx.Test;
 import stx.unit.Test;
 
+import stx.test.*;
+
 class Main {
 	static function main() {
-		var test 	= new TestTest();
-		var results = new Runner().apply(
+		trace('main');
+		#if (sys )
+			stx.log.Signal.instance.attach(new stx.log.logger.ConsoleLogger());
+		#end
+		var signal = new Runner().apply(
 			[
-				// new DependsTest(),
-				// test,
-				// new UseAsyncTest(),
-				// new SynchronousErrorTest(),
+				new DependsTest(),
+				new TestTest(),
+				new UseAsyncTest(),
+				new SynchronousErrorTest(),
 				new AsyncResultTest(),
 			]
-		).handle(
-			(arr) -> {
-				new Reporter().report(arr);
-				//trace("DONE");
-				// for(x in arr){
-				// 	for(y in x){
-				// 		trace(y);
-				// 	}
-				// };
-			}
 		);
+		new Reporter(signal).enact();
 	}
 }

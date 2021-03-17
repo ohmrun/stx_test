@@ -5,74 +5,129 @@ class Runner{
   public function new(?timeout=6000){
     this.timeout = timeout;
   }
-  public function apply<T:TestCase>(cases:Array<T>){
-    var normalized : Array<TestCase> = cases.map(x -> x.asTestCase());
-    var a = __.nano().Ft().bind_fold(
-      normalized,
-      (test_case:TestCase,memo:Array<TestCaseData>) -> {
-        var test_case_data = @:privateAccess test_case.__stx__tests();
-        var setup          = Async.reform(test_case.__setup());
-
-        var ft = __.nano().Ft().bind_fold(
-          test_case_data.data,
-          (next:AnnotatedMethodCall,memo:Array<MethodCall>) -> {
-            //trace(next.test);
-            var before = Async.reform(test_case.__before());
-            return before.flatMap(
-              (_) -> {
-                return try{
-                  var result = next.call();
-                  switch(result){
-                    case None                 : Future.irreversible((cb -> cb(()->{})));
-                    case Some(ft)             : ft.asFuture();
-                    case null                 : Future.irreversible((cb -> cb(()->{})));
-                  }
-                }catch(e:Err<Dynamic>){
-                  Future.irreversible(
-                    (cb) -> {
-                      cb(()->{next.data.error(e);});
-                    }
-                  );
-                }catch(e:Dynamic){
-                  Future.irreversible(  
-                    (cb) -> {
-                      cb(() -> {
-                        next.data.error(__.fault().of(E_Test_Dynamic(e)));
-                      });
-                    }
-                  );
-                }
-            }).first(
-                Timeout.make(next,next.timeout().defv(timeout))).map(
-                 (cb) -> {
-                  cb();
-                  return memo.snoc(next);
-                }
-            ).flatMap(
-              (res) -> {
-                var after = Async.reform(test_case.__after());
-                return after.map(
-                  (_) -> res
-                );
-              }
-            );
-          }
-          ,[]
-        ).map(
-          x -> Noise
+  public function apply<T:TestCase>(cases:Array<T>):Signal<Chunk<TestPhaseSum,TestFailure>>{
+    return Signal.make(
+      (cb) -> {
+        var test_cases  : Array<TestCaseData> = cases.map(
+          (t:T) -> TestCaseLift.get_tests(t) 
         );
-        return ft.flatMap(
-          (x) -> {
-            var teardown  = Async.reform(test_case.__teardown());
-            return teardown.map(_ -> x);
-          }
-        ).map((_) -> memo.snoc(test_case_data));
-      },
-      []
-    );
-    //$type(a);
-    return a.map(
-      (tcd) -> return new TestSuite(normalized,tcd)
+        var data = test_cases.map(Val).snoc(End());
+
+        //trace('apply: Runner');       
+        var sig   = Signal.fromArray(data);
+        var next  = sig.flat_map(
+          (chunk) -> chunk.fold(
+            val -> {
+              cb(Val(TP_StartTestCase(val)));
+              return TestCaseDataRun.apply(val);
+            },
+            end -> __.option(end).fold(
+              err -> Signal.pure(Val(TP_ReportFatal(err))),
+              ()  -> Signal.pure(End())
+            ),
+            () -> Signal.pure(Tap)
+          )
+        );
+        next.handle(
+          (x) -> x.fold(
+            val -> cb(Val(val)),
+            end -> __.option(end).fold(
+              err -> cb(Val(TP_ReportFatal(err))),
+              ()  -> {
+                cb(
+                  Val(TP_ReportTestSuiteComplete(new TestSuite(test_cases)))
+                );
+                cb(End());
+              }
+            ),
+            () -> {}
+          )
+        );
+        return () -> {}
+      }
     );
   } 
+}
+class TestCaseDataRun{
+  static public function apply(test_case_data:TestCaseData):Signal<Chunk<TestPhaseSum,TestFailure>>{
+    return Signal.make(
+      (cb) -> {
+        //trace('apply: TestCaseDataRun: $test_case_data');
+        var sig  = Signal.fromArray(test_case_data.method_calls.map(Val).snoc(End())); 
+        var next = sig.flat_map(
+          (x:Chunk<MethodCall,TestFailure>) -> x.fold(
+            (val) -> {
+              cb(Val(TP_StartTest(val)));
+              return MethodCallRun.apply(val);
+            },
+            (end) -> Signal.pure(End(end)),
+            ()    -> Signal.pure(Tap)
+          )
+        );
+        next.handle(
+          ok -> ok.fold(
+            (val) -> cb(Val(val)),
+            (end) -> __.option(end).fold(
+              err -> cb(Val(TP_ReportFatal(err))),
+              ()  -> cb(Val(TP_ReportTestCaseComplete(test_case_data)))
+            ),
+            () -> {}
+          )        
+        );
+        return () -> {};
+      }
+    );
+  }
+}
+class MethodCallRun{
+  static public function apply(method_call:MethodCall):Signal<Chunk<TestPhaseSum,TestFailure>>{
+    return Signal.make(
+      (cb) -> {
+        //trace('apply: MethodCallRun: $method_call');
+        var next  = Signal.fromFuture(method_call.call().map(
+          eff -> eff().fold(
+            (failure) -> {
+              method_call.object.test_error('EFF',failure);
+              Noise;
+            }
+            ,() -> {
+              Noise;
+            }
+          )
+        )).flat_map(
+          (_:Noise) -> {
+            var asserts = method_call.assertions.map(Val).snoc(End());
+            return Signal.fromArray(asserts).flat_map(
+              (chunk:Chunk<Assertion,TestFailure>) -> chunk.fold(
+                val -> AssertionRun.apply(val,method_call),
+                end -> __.option(end).fold(
+                  (err) -> Signal.pure(Val(TP_ReportFatal(err))),
+                  ()    -> Signal.pure(Val(TP_ReportTestComplete(method_call)))
+                ),
+                () -> Signal.pure(Tap)  
+              )
+            );
+          }
+        ).handle(
+          (chunk) -> {
+            cb(chunk);
+          }
+        );
+        return () -> {}
+      }
+    );
+  }
+}
+class AssertionRun{
+  static public function apply(assertion:Assertion,method_call):Signal<Chunk<TestPhaseSum,TestFailure>>{
+    return Signal.make(
+      cb -> {
+        switch(assertion.truth){
+          case false : cb(Val(TP_ReportFailure(assertion,method_call)));
+          case true  : 
+        }
+        return () -> {}
+      }
+    );
+  }
 }

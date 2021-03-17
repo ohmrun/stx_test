@@ -1,23 +1,36 @@
 package stx.unit.test;
 
 class TestCaseData{
-  public final type : Classdef;
-  public final val  : TestCase;
-  public final data : Array<AnnotatedMethodCall>;
+  public final test_case    : TestCase;
+  public final clazz        : Classdef;
+  public final method_calls : Array<MethodCall>;
   
-  public function new(type,val,data){
-    this.type = type;
-    this.val  = val;
-    this.data = data;
+  public function new(test_case,clazz,method_calls){
+    this.test_case       = test_case;
+    this.clazz        = clazz;
+    this.method_calls = method_calls;
   }
   public function has_failures(){
     var failed = false;
-    for(mc in data){
+    for(mc in method_calls){
       if(mc.assertions.failures.length > 0){
         failed = true;
         break;
       }
     }
     return failed;
+  }
+  public function has_assertions(){
+    var bool = false;
+    for(mc in method_calls){
+      if(mc.has_assertions()){
+        bool = true;
+        break; 
+      }
+    }
+    return bool;
+  }
+  public function toString(){
+    return 'TestCaseData(${clazz.path})';
   }
 }

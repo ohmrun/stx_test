@@ -16,4 +16,5 @@ package stx.unit.test;
       return Some(fn());
     });
   }
+  public function prj():Void->Option<Async> return this;
 }
