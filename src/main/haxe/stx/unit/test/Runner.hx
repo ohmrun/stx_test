@@ -44,11 +44,21 @@ class Runner{
 class TestCaseDataRun{
   static public function apply(test_case_data:TestCaseData):Stream<TestPhaseSum,TestFailure>{
     return Stream.fromArray(test_case_data.method_calls).flat_map(
-      (val) -> {
+      (method_call) -> {
         //__.log().debug('apply: TestCaseDataRun: $test_case_data');
-        return Stream.pure(TP_StartTest(val)).seq(MethodCallRun.apply(val));
+        var init      = Stream.pure(TP_StartTest(method_call));
+        var setup     = updown(test_case_data.test_case.__setup,method_call,TP_Setup);
+        var teardown  = updown(test_case_data.test_case.__teardown,method_call,TP_Teardown);
+        return init.seq(setup).seq(MethodCallRun.apply(method_call)).seq(teardown);
       }
     ).seq(Stream.pure(TP_ReportTestCaseComplete(test_case_data)));
+  }
+  static function updown(fn:Void->Option<Async>,method_call,cons){
+    return Stream.fromFuture(__.option(fn()).flatten().fold(
+      (async) -> async.asFuture().first(Timeout.make(method_call,2000)),
+      ()      -> TestResult.unit()
+    ).map((x) -> x()).map(opt -> opt.fold(cons,()->TP_Null)));
+
   }
 }
 class MethodCallRun{
