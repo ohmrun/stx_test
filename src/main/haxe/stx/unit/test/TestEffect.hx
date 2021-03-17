@@ -12,6 +12,11 @@ package stx.unit.test;
       );
     }
   }
+  @:from static public function fromTestFailure(self:TestFailure):TestEffect{
+    return () -> {
+      return Option.pure(self);
+    } 
+  }
   @:from static public function fromErr<T>(err:Err<T>):TestEffect{
     return () -> {
       return Option.pure(E_Test_Err(err));

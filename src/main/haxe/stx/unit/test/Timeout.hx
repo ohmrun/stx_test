@@ -1,7 +1,7 @@
 package stx.unit.test;
 
 class Timeout{
-  static public function make(method_call:MethodCall,timeout:Int):TestResult{
+  static public function make(timeout:Int):TestResult{
     //trace('${haxe.Timer.stamp()}, make ${method_call.field.name}');
     var cancelled = false;
     return new Future(
@@ -13,18 +13,9 @@ class Timeout{
             var now = haxe.Timer.stamp(); 
             //trace("DELAYED");
             if(!cancelled){
-              if(now > method_call.timestamp + (timeout/1000)){
-                @:privateAccess method_call.object.__assertions.push(
-                  Assertion.make(false,
-                    'timeout'
-                    ,TestTimedOut(timeout)
-                    ,method_call.position()
-                  )
-                );
-                cb(
-                  TestEffect.unit()
-                );
-              }
+              cb(
+                TestEffect.fromTestFailure(TestTimedOut(timeout))
+              );
             }
           }
         ,timeout);

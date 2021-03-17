@@ -76,7 +76,10 @@ class Reporter extends Clazz{
         case TP_StartTestCase(test_case_data)     : println(test_case_string_fn(test_case_data),l1);
         case TP_StartTest(method_call)            : println(method_call_string_fn(method_call),l2);
         case TP_ReportFatal(err)                  : println('<red>${err.toString()}</red>');
-        case TP_Setup(err) | TP_Teardown(err)     : println('<red>${err}</red>');
+        case TP_Setup(err)
+           | TP_Before(err)
+           | TP_After(err) 
+           | TP_Teardown(err)                     : println('<red>${err}</red>');
         case TP_ReportFailure(assertion,_)        :
           final assertion_string = assertion.outcome().fold(
             s -> s,

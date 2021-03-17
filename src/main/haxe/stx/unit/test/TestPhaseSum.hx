@@ -9,7 +9,10 @@ enum TestPhaseSum{
   TP_StartTest(method_call:MethodCall);
 
   TP_ReportFatal(err:Err<TestFailure>);
+
   TP_Setup(f:TestFailure);
+  TP_Before(f:TestFailure);
+  TP_After(f:TestFailure);
   TP_Teardown(f:TestFailure);
   
   TP_ReportFailure(assertion:Assertion,method_call:MethodCall);
