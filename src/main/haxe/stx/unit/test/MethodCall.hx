@@ -18,10 +18,11 @@ class MethodCall{
     this.timestamp = haxe.Timer.stamp();
     var res = Util.or_res(_call.prj());
     return res.fold(
-      (ok:Option<Async>) -> Async.reform(ok),
+      (ok:Option<Async>) -> ok.fold(
+        async -> async.asFuture().first(Timeout.make(this,2000)),
+        ()    -> TestResult.unit()
+      ),
       no -> TestEffect.fromErr(no)
-    ).first(
-      Timeout.make(this,2000)
     );
   }
   

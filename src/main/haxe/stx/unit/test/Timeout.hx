@@ -8,7 +8,7 @@ class Timeout{
       (cb) -> {
         //trace('${haxe.Timer.stamp()}, start ${method_call.field.name}');
         haxe.Timer.delay(
-          function rec(){
+          function(){
             //trace('${haxe.Timer.stamp()}, done ${method_call.field.name}');
             var now = haxe.Timer.stamp(); 
             //trace("DELAYED");
@@ -24,12 +24,10 @@ class Timeout{
                 cb(
                   TestEffect.unit()
                 );
-              }else{
-                haxe.Timer.delay(rec,500);
               }
             }
           }
-        ,500);
+        ,timeout);
         var cbl = function(){
           //__.log().debug('cancelled');
           cancelled = true;
