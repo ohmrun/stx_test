@@ -43,12 +43,13 @@ class Assert{
     assert(Assertion.make(truth,reason,pos));
   }
   //Top level enum the same.
-  public inline function alike(e0:EnumValue,o:Dynamic,?reason='like',?pos:Pos){
-    var e1 : EnumValue = o;
-    trace(e1.index());
-    trace(e1.ctr());
-    trace(e0.index());
-    trace(e0.ctr());
+  public inline function alike(oI:Dynamic,oII:Dynamic,?reason='like',?pos:Pos){
+    var e0 : EnumValue = oI;
+    var e1 : EnumValue = oII;
+    // trace(e1.index());
+    // trace(e1.ctr());
+    // trace(e0.index());
+    // trace(e0.ctr());
     var truth = e0.index() == e1.index() && e0.ctr() == e1.ctr();
     assert(Assertion.make(truth,reason,pos));
   }
