@@ -8,5 +8,8 @@ package stx.unit.test;
       (x) -> x.outcome().fold(_ -> None,Some)
     );
   }
+  public function has_failures(){
+    return failures.is_defined();
+  }
   
 }

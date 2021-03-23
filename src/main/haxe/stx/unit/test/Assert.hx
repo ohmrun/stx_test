@@ -15,7 +15,7 @@ class Assert{
     assert(Assertion.make(false,Std.string(error),E_Test_Dynamic(error),pos));
   }
   public function pass(?pos:Pos){
-    assert(Assertion.make(true,'assertion passed',NullTestFailure,pos));
+    assert(Assertion.make(true,'passed',NullTestFailure,pos));
   }
   public function fail(reason="force fail",?pos:Pos){
     assert(Assertion.make(false,reason,null,pos));
@@ -31,5 +31,15 @@ class Assert{
   }
   public function isTrue(v:Bool,?explanation='should be true',?pos:Pos){
     assert(Assertion.make(v,explanation,null,pos));
+  }
+  public function exists(v:Dynamic,?reason='should not be null',?pos:Pos){
+    assert(Assertion.make(!(v==null),reason,null,pos));
+  }
+  public function iz(clazz:Class<Dynamic>,v:Dynamic,?reason='should be',?pos:Pos){
+    var truth = switch(std.Type.typeof(v)){
+      case TClass(cls)  : cls.identifier() == clazz.identifier();
+      default           : false;
+    }
+    assert(Assertion.make(truth,reason,pos));
   }
 }

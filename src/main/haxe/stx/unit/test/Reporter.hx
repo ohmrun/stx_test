@@ -104,13 +104,28 @@ class Reporter extends Clazz{
               print_status(green_tick_on_black,' <green>${test_case_data.clazz.path}</green>');
             }else{
               print_status(red_cross_on_black,' <red>${test_case_data.clazz.path}</red>');
-              for(method_call in test_case_data.method_calls){
-                for(assertion in method_call.assertions){
-                  assertion.truth.if_else(
-                    () -> print_status(green_tick_on_black,'<green>${method_call.field.name}</green>',l1),
-                    () -> print_status(red_cross_on_black,'<blue>${method_call.field.name}</blue>:<red>$assertion</red>',l1)
-                  );
-                }
+            }
+            for(method_call in test_case_data.method_calls){
+              var status = method_call.has_assertions().if_else(
+                () -> method_call.assertions.has_failures().if_else(
+                  () -> red_cross_on_black,
+                  () -> green_tick_on_black
+                ),
+                () -> yellow_question_on_black
+              );
+              print_status(status,'<blue>${method_call.field.name}</blue>');
+              for(assertion in method_call.assertions){
+                #if verbose
+                assertion.truth.if_else(
+                  () -> print_status(green_tick_on_black,'<green>${assertion}</green>',l1),
+                  () -> print_status(red_cross_on_black,'<red>$assertion</red>',l1)
+                );
+                #else
+                assertion.truth.if_else(
+                  () -> {},
+                  () -> print_status(red_cross_on_black,'<red>$assertion</red>',l1)
+                );
+                #end
               }
             }
           }
