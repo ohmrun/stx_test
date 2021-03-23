@@ -42,4 +42,9 @@ class Assert{
     }
     assert(Assertion.make(truth,reason,pos));
   }
+  //Top level enum the same.
+  public inline function alike(e0:EnumValue,e1:EnumValue,?reason='like',?pos:Pos){
+    var truth = e0.index() == e1.index() && e0.ctr() == e1.ctr();
+    assert(Assertion.make(truth,reason,pos));
+  }
 }
