@@ -12,6 +12,9 @@ class Test{
       }
 		)).enact();
   }
+  static public function explain<T>(wildcard:Wildcard,val:T,?ctr:T->String):Explain<T>{
+    return new Explain(val,ctr);
+  }
 }
 typedef Assert                = stx.unit.test.Assert;
 typedef Assertion             = stx.unit.test.Assertion;
@@ -39,3 +42,59 @@ typedef WrappedFuture<T>      = stx.unit.test.WrappedFuture<T>;
 typedef TestFailure           = stx.fail.TestFailure;
 typedef TestMethodZeroDef     = Void->Option<Async>;
 typedef TestMethodOneDef      = Async->Void;
+
+class Explain<T>{
+  var val : T;
+  var ctr : T -> String;
+  public function new(val:T,?ctr:T->String){
+    this.val = val;
+    this.ctr = __.option(ctr).defv(Std.string);
+  }  
+  public function should(){
+    return new Explainers(this);
+  }
+  public function match(sentence:String,?args:Array<Dynamic>){
+    var arr : Array<Dynamic> = [ctr(val)];
+    return new Explained(sentence,arr.concat(__.option(args).defv([])));
+  }
+}
+class Explainers<T>{
+  var explain : Explain<T>;
+  public function new(explain){
+    this.explain = explain;
+  }
+  private function go(rest:String,?args:Array<Dynamic>){
+    return explain.match('%s should $rest',args);
+  }
+  public function be_like(v:T){
+    return go('be like %s.',[v]);
+  }
+  public function be(v:T,?words:String=""){
+    var s = words == "" ? 'be %s' : 'be $words %s';
+    return go('$s',[v]);
+  }
+  public function be_equal_to(v:T){
+    return go('be equal to %s');
+  }
+  public function contain(v:T){
+    return go('contain %s');
+  }
+  public function exist(){
+    return go('should exist.');
+  }
+  public function raises(d:Dynamic){
+    return go('raise error: %s',[d]);
+  }
+}
+class Explained<T> {
+  var sentence   : String;
+  var values     : Array<Dynamic>;
+
+  public function new(sentence,values){
+    this.sentence = sentence;
+    this.values   = values;
+  }
+  public function toString(){
+    return Printf.format(sentence,values);
+  }
+}

@@ -16,8 +16,9 @@
         "tink_core"     : "git:https://github.com/haxetink/tink_core.git",
         "hx3compat"     : "git:https://github.com/HaxeFoundation/hx3compat.git",
 
-        "console.hx"    : "git:https://github.com/haxiomic/console.hx.git",
-        "equals"        : "git:https://github.com/elnabo/equals.git",
+        "console.hx"        : "git:https://github.com/haxiomic/console.hx.git",
+        "equals"            : "git:https://github.com/elnabo/equals.git",
+        "polygonal-printf"  : "git:https://github.com/polygonal/printf.git", 
 
         "stx_pico"      : "git:https://github.com/ohmrun/stx_pico.git",
         "stx_nano"      : "git:https://github.com/ohmrun/stx_nano.git",
