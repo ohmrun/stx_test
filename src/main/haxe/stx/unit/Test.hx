@@ -300,6 +300,9 @@ class Assert{
   public function isTrue(v:Bool,?explanation='should be true',?pos:Pos){
     assert(Assertion.make(v,explanation,null,pos));
   }
+  public function exists<T>(v:Null<T>,?reason="should not be null",?pos:Pos){
+    assert(Assertion.make(v!=null,reason,null,pos));
+  }
 }
 @:rtti class TestCase extends Assert{
   private function __stx__tests(){
