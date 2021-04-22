@@ -57,9 +57,6 @@ class Explain<T>{
     var arr : Array<Dynamic> = [ctr(val)];
     return new Explained(sentence,arr.concat(__.option(args).defv([])));
   }
-  public function exists<T>(v:Null<T>,?reason="should not be null",?pos:Pos){
-    assert(Assertion.make(v!=null,reason,null,pos));
-  }
 }
 class Explainers<T>{
   var explain : Explain<T>;
