@@ -1,4 +1,5 @@
 -cp src/main/haxe
+-D no-deprecation-warnings
 
 -lib console.hx
 -lib equals 
@@ -8,8 +9,8 @@
 -lib stx_log
 -lib stx_fn
 -lib stx_assert
-
--lib stx_assert
+-lib stx_show
+-lib polygonal-printf 
 
 -lib hx3compat
 -D poke

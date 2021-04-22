@@ -22,9 +22,9 @@ class Test{
   static public function test(test:Array<utest.Test>,only:Array<Dynamic>){
     __.log().info('utest:$pokey');
     __.log().debug(ctr -> ctr.pure(test));
-    #if poke
+    if (stx.sys.Env.get("POKE").is_defined()){
       test =  test.filter(__.poke(only));
-    #end
+    }
     __.log().info((x) -> x.pure(test));
     utest.UTest.run(test);
   }
