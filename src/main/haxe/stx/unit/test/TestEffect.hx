@@ -4,7 +4,7 @@ package stx.unit.test;
   @:noUsing static public function unit():TestEffect{
     return () -> Option.unit();
   }
-  @:from static public function fromFn(fn:Void->Void):TestEffect{
+  static public function fromFn(fn:Void->Void):TestEffect{
     return () -> {
       return Util.or_res(fn.fn().then(_ -> Noise).prj()).fold(
         ok -> Option.unit(),
