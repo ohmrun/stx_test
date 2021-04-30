@@ -9,7 +9,7 @@ class Assert{
     __assertions.push(assertion);
   }
   public function equals<T>(self:T,that:T,?reason:String,?pos:Pos){
-    reason = reasoning(() -> __.explain(self).should().be(that,'equal to'),reason);
+    reason = reasoning(() -> __.explain(self).should().be_equal_to(that),reason);
     assert(Assertion.make(self == that, reason,TestFailedBecause(reason), pos));
   } 
   public function raise(error:Dynamic,?reason:String,?pos:Pos){

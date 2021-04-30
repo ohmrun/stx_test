@@ -74,10 +74,10 @@ class Explainers<T>{
     return go('$s',[v]);
   }
   public function be_equal_to(v:T){
-    return go('be equal to %s');
+    return go('be equal to %s',[v]);
   }
   public function contain(v:T){
-    return go('contain %s');
+    return go('contain %s',[v]);
   }
   public function exist(){
     return go('should exist.');
@@ -95,6 +95,6 @@ class Explained<T> {
     this.values   = values;
   }
   public function toString(){
-    return Printf.format(sentence,values);
+    return Printf.format(sentence,values.map(x -> '$x'));
   }
 }
