@@ -35,7 +35,7 @@ abstract AsyncResult<T>(Option<T>) from Option<T>{
         (no) -> no.report()
       ),
       () -> Util.or_res((nil:Block).returning(null).prj()).fold(
-        (ok) -> __.report(NullTestFailure,pos),
+        (ok) -> __.report(f -> f.of(NullTestFailure),pos),
         (no) -> no.report()
       )
     );

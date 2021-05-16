@@ -53,7 +53,7 @@ class TestCaseLift{
           ).map(
             __.decouple(
               (string,option:Option<MethodCall>) -> {
-                var value = option.resolve(ERR(cast 'no dependency $string')).fudge();
+                var value = option.resolve(f -> f.failure(ERR(cast 'no dependency $string'))).fudge();
                 return __.couple(string,value); 
               }  
             )  
