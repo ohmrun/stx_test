@@ -2,7 +2,9 @@ package stx.unit.test;
 
 class TestCaseLift{
   static public function get_tests<T:TestCase>(v:T){
-    var rtti          = Rtti.getRtti(std.Type.getClass(v));
+    var clazz         = std.Type.getClass(v);
+    trace(clazz);
+    var rtti          = Rtti.getRtti(clazz);
     var fields        = rtti.fields;
     var test_fields   = fields.filter( cf -> cf.name.startsWith('test') );
     var applications  = test_fields.map_filter(

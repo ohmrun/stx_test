@@ -4,13 +4,18 @@ package stx.unit;
 class Test{
   
   static public function unit<T:TestCase>(wildcard:Wildcard,tests:Array<T>,poke:Array<Dynamic>){
-    new Reporter(new Runner().apply(
-      if (stx.sys.Env.get("POKE").is_defined()){
-        tests.filter(stx.Test.poke(__,poke));
-      }else{
+    final tests = 
+      #if sys
+        if (stx.sys.Env.get("POKE").is_defined()){
+          tests.filter(stx.Test.poke(__,poke));
+        }else{
+          tests;
+        }
+      #else 
         tests;
-      }
-		)).enact();
+      #end
+      
+    new Reporter(new Runner().apply(tests)).enact();
   }
   static public function explain<T>(wildcard:Wildcard,val:T,?ctr:T->String):Explain<T>{
     return new Explain(val,ctr);

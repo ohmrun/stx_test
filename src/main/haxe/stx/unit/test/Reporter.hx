@@ -115,7 +115,13 @@ class Reporter extends Clazz{
               );
               print_status(status,'<blue>${method_call.field.name}</blue>');
               for(assertion in method_call.assertions){
-                if (stx.sys.Env.get('STX_TEST__VERBOSE').is_defined()){
+                final predicate = 
+                  #if sys
+                    stx.sys.Env.get('STX_TEST__VERBOSE').is_defined();
+                  #else
+                    false;
+                  #end
+                if (predicate){
                   assertion.truth.if_else(
                     () -> print_status(green_tick_on_black,'<green>${assertion}</green>',l1),
                     () -> print_status(red_cross_on_black,'<red>$assertion</red>',l1)
