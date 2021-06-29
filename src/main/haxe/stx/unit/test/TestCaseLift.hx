@@ -3,7 +3,7 @@ package stx.unit.test;
 class TestCaseLift{
   static public function get_tests<T:TestCase>(v:T){
     var clazz         = std.Type.getClass(v);
-    trace(clazz);
+    //trace(clazz);
     var rtti          = Rtti.getRtti(clazz);
     var fields        = rtti.fields;
     var test_fields   = fields.filter( cf -> cf.name.startsWith('test') );
