@@ -19,7 +19,7 @@ class MethodCall{
     var res = Util.or_res(_call.prj());
     return res.fold(
       (ok:Option<Async>) -> ok.fold(
-        async -> async.asFuture().first(Timeout.make(2000)),
+        async -> async.asFuture().first(timeout().map(Timeout.make).defv(Timeout.make(2000))),
         ()    -> TestResult.unit()
       ),
       no -> TestEffect.fromErr(no)
