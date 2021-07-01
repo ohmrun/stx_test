@@ -9,7 +9,7 @@ class AsyncResultTest extends TestCase{
    wrap(ft).consume(
     (opt) -> opt.use(
       (b) -> __.report(f -> f.of(E_Test_Dynamic("OH NOES")))
-    ),
+   g ),
     async
    );
   }
