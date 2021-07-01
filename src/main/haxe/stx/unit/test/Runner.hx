@@ -13,7 +13,9 @@ class Runner{
     return sig.flat_map(
       val -> {
         __.log().debug('test case $val');
-        return Stream.pure(TP_StartTestCase(val)).seq(TestCaseDataRun.apply(val));
+        return Stream.pure(TP_StartTestCase(val))
+          .seq(TestCaseDataRun.apply(val))
+          .seq(Stream.effect(() -> {trace("?BEWREr");}));
       }
     ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(test_cases))));
     // return Stream.make(
@@ -51,14 +53,19 @@ class TestCaseDataRun{
         var init      = Stream.pure(TP_StartTest(method_call));
         var before    = updown(test_case_data.test_case.__before,TP_Before);
         var after     = updown(test_case_data.test_case.__after,TP_After);
-        return init.seq(before).seq(MethodCallRun.apply(method_call)).seq(after);
+        return 
+          init.seq(before)
+              .seq(Stream.effect(() -> {trace("before method_call_run");}))
+              .seq(MethodCallRun.apply(method_call))
+              .seq(Stream.effect(() -> {trace("after method_call_run");}))
+              .seq(after);
       }
     )).seq(teardown).seq(Stream.pure(TP_ReportTestCaseComplete(test_case_data)));
   }
   static function updown(fn:Void->Option<Async>,cons){
     __.log().debug('updown');
     return Stream.fromThunkFuture(() -> __.option(fn()).flatten().fold(
-      (async) -> async.asFuture().first(Timeout.make(2000)),
+      (async) -> async.asFuture().first(Timeout.make(20000)),
       ()      -> TestResult.unit()
     ).map((x) -> x()).map(opt -> opt.fold(cons,()->TP_Null)));
 
