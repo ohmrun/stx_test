@@ -55,9 +55,9 @@ class TestCaseDataRun{
         var after     = updown(test_case_data.test_case.__after,timeout,TP_After);
         return 
           init.seq(before)
-              .seq(Stream.effect(() -> __.log().debug("before method_call_run");}))
+              .seq(Stream.effect(() -> __.log().debug("before method_call_run");))
               .seq(MethodCallRun.apply(method_call))
-              .seq(Stream.effect(() -> __.log().debug("after method_call_run");}))
+              .seq(Stream.effect(() -> __.log().debug("after method_call_run");))
               .seq(after);
       }
     )).seq(teardown).seq(Stream.pure(TP_ReportTestCaseComplete(test_case_data)));
