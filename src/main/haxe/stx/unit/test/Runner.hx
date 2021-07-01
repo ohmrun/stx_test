@@ -14,7 +14,7 @@ class Runner{
       val -> {
         __.log().debug('test case $val');
         return Stream.pure(TP_StartTestCase(val))
-          .seq(TestCaseDataRun.apply(val))
+          .seq(TestCaseDataRun.apply(val,timeout))
           .seq(Stream.effect(() -> {trace("?BEWREr");}));
       }
     ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(test_cases))));
@@ -44,15 +44,15 @@ class Runner{
   } 
 }
 class TestCaseDataRun{
-  static public function apply(test_case_data:TestCaseData):Stream<TestPhaseSum,TestFailure>{
-    var setup     = updown(test_case_data.test_case.__setup,TP_Setup);
-    var teardown  = updown(test_case_data.test_case.__teardown,TP_Teardown);
+  static public function apply(test_case_data:TestCaseData,timeout):Stream<TestPhaseSum,TestFailure>{
+    var setup     = updown(test_case_data.test_case.__setup,timeout,TP_Setup);
+    var teardown  = updown(test_case_data.test_case.__teardown,timeout,TP_Teardown);
     return setup.seq(Stream.fromArray(test_case_data.method_calls).flat_map(
       (method_call) -> {
         __.log().debug('apply: TestCaseDataRun: $test_case_data $method_call');
         var init      = Stream.pure(TP_StartTest(method_call));
-        var before    = updown(test_case_data.test_case.__before,TP_Before);
-        var after     = updown(test_case_data.test_case.__after,TP_After);
+        var before    = updown(test_case_data.test_case.__before,timeout,TP_Before);
+        var after     = updown(test_case_data.test_case.__after,timeout,TP_After);
         return 
           init.seq(before)
               .seq(Stream.effect(() -> {trace("before method_call_run");}))
@@ -62,10 +62,10 @@ class TestCaseDataRun{
       }
     )).seq(teardown).seq(Stream.pure(TP_ReportTestCaseComplete(test_case_data)));
   }
-  static function updown(fn:Void->Option<Async>,cons){
+  static function updown(fn:Void->Option<Async>,timeout:Int,cons){
     __.log().debug('updown');
     return Stream.fromThunkFuture(() -> __.option(fn()).flatten().fold(
-      (async) -> async.asFuture().first(Timeout.make(20000)),
+      (async) -> async.asFuture().first(Timeout.make(timeout)),
       ()      -> TestResult.unit()
     ).map((x) -> x()).map(opt -> opt.fold(cons,()->TP_Null)));
 
