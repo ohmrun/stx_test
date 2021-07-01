@@ -7,9 +7,4 @@ package stx.unit.test;
   public function done(){
     this.trigger(TestEffect.unit());
   }
-  // static public function reform(option:Option<Async>,timeout=2000):TestResult{
-  //   return option.map(
-  //     (x:FutureTrigger<TestEffect>) -> x.asFuture().first(Timeout.make(this,timeout))
-  //   ).def();
-  // }
 }
