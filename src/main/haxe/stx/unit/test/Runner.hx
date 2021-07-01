@@ -15,7 +15,7 @@ class Runner{
         __.log().debug('test case $val');
         return Stream.pure(TP_StartTestCase(val))
           .seq(TestCaseDataRun.apply(val,timeout))
-          .seq(Stream.effect(() -> {trace("?BEWREr");}));
+          .seq(Stream.effect(() -> {__.log("After TestCaseDataRun");}));
       }
     ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(test_cases))));
     // return Stream.make(
