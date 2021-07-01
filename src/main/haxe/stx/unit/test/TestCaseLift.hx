@@ -136,6 +136,7 @@ class TestCaseLift{
       return () -> try{
         fn();
       }catch(e:Dynamic){
+        __.log().debug(e);
         test_case.raise(E_Test_Dynamic(e),get_pos(def,cf));
         return None;
       }

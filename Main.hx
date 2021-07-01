@@ -6,7 +6,7 @@ import stx.unit.Test;
 
 import stx.test.*;
 
-using stx.test.Log;
+using stx.test.Logging;
 
 class Main {
 	static function main() {
@@ -17,16 +17,17 @@ class Main {
 		#end
 		logger.includes.push("stx/test");
 		logger.includes.push("stx/stream");
+		logger.level = DEBUG;
 
 		__.log().info('main');
 
 		var signal = new Runner().apply(
 			[
-				//new DependsTest(),
-				//new TestTest(),
+				new DependsTest(),
+				new TestTest(),
 				new UseAsyncTest(),
-				//new SynchronousErrorTest(),
-				//new AsyncResultTest(),
+				new SynchronousErrorTest(),
+				new AsyncResultTest(),
 			]
 		);
 		new Reporter(signal).enact();

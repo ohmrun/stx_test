@@ -15,7 +15,7 @@ class Runner{
         __.log().debug('test case $val');
         return Stream.pure(TP_StartTestCase(val))
           .seq(TestCaseDataRun.apply(val,timeout))
-          .seq(Stream.effect(() -> {__.log("After TestCaseDataRun");}));
+          .seq(Stream.effect(() -> {__.log()("After TestCaseDataRun");}));
       }
     ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(test_cases))));
     // return Stream.make(
@@ -75,7 +75,7 @@ class MethodCallRun{
   static public function apply(method_call:MethodCall):Stream<TestPhaseSum,TestFailure>{
     return Stream.fromThunkFuture(() -> method_call.call().map(
       eff -> {
-        stx.test.Log.log(__).debug('${method_call.field.name} called');
+        __.log().debug('${method_call.field.name} called');
         return eff().fold(
           (failure) -> {
             method_call.object.test_error('EFF',failure);

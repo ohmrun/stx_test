@@ -18,4 +18,4 @@ using stx.Show;
 
 using stx.unit.Test;
 
-using stx.test.Log;
+using stx.test.Logging;
