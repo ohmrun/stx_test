@@ -7,7 +7,7 @@ class Runner{
   }
   public function apply<T:TestCase>(cases:Array<T>):Stream<TestPhaseSum,TestFailure>{
     var test_cases  : Array<TestCaseData> = cases.map(
-      (t:T) -> TestCaseLift.get_tests(t) 
+      (t:T) -> TestCaseLift.get_tests(t,timeout) 
     );
     var sig   = Stream.fromArray(test_cases);
     return sig.flat_map(

@@ -1,16 +1,18 @@
 package stx.unit.test;
 
 class MethodCall{
-  public function new(object:TestCase,clazz:Classdef,field:ClassField,_call:TestMethodZero){
+  public function new(object:TestCase,clazz:Classdef,field:ClassField,_call:TestMethodZero,timeout){
     this.object       = object;
     this.clazz        = clazz;
     this.field        = field;
     this._call        = _call;
+    this.timeout      = timeout;
   }
   public final object     : TestCase;
   public final clazz      : Classdef;
   public final field      : ClassField;
   public final _call      : TestMethodZero;
+  public final timeout    : Int;
 
   public var timestamp    : Float;
   
@@ -19,7 +21,7 @@ class MethodCall{
     var res = Util.or_res(_call.prj());
     return res.fold(
       (ok:Option<Async>) -> ok.fold(
-        async -> async.asFuture().first(timeout().map(Timeout.make).defv(Timeout.make(20000))),
+        async -> async.asFuture().first(Timeout.make(get_timeout())),
         ()    -> TestResult.unit()
       ),
       no -> TestEffect.fromErr(no)
@@ -56,14 +58,16 @@ class MethodCall{
       }
     );
   }
-  public function timeout():Option<Int>{
+  public function get_timeout():Int{
     return field.meta.search(
       (x) -> x.name == 'timeout'
     ).flat_map(
       (x) -> __.option(x.params).defv([]).head()
     ).map(
       Std.parseInt
-    );
+    ).def(
+      () -> this.timeout
+    ); 
   }
   public function has_assertions(){
     //trace(assertions.is_defined());

@@ -1,7 +1,7 @@
 package stx.unit.test;
 
 class TestCaseLift{
-  static public function get_tests<T:TestCase>(v:T){
+  static public function get_tests<T:TestCase>(v:T,timeout:Int){
     var clazz         = std.Type.getClass(v);
     //trace(clazz);
     var rtti          = Rtti.getRtti(clazz);
@@ -11,19 +11,19 @@ class TestCaseLift{
       (cf) -> switch(cf.type){
         case CFunction([],CAbstract('Void',[]))            : 
           //__.log().debug('${cf.name} ZeroZero');
-          Some(get_test(v,rtti,cf,ZeroZero));
+          Some(get_test(v,rtti,cf,ZeroZero,timeout));
         case CFunction([],CAbstract('stx.unit.test.Async',[]))  :
           //__.log().debug('${cf.name} ZeroOne'); 
-          Some(get_test(v,rtti,cf,ZeroOne));
+          Some(get_test(v,rtti,cf,ZeroOne,timeout));
         case CFunction([],CTypedef('stx.unit.Async',[]))  : 
           //__.log().debug('${cf.name} ZeroOne');
-          Some(get_test(v,rtti,cf,ZeroOne));
+          Some(get_test(v,rtti,cf,ZeroOne,timeout));
         case CFunction([{ t : CTypedef('stx.unit.Async',[]) } ],CAbstract('Void',[])) :
           //__.log().debug('${cf.name} OneZero');
-          Some(get_test(v,rtti,cf,OneZero));
+          Some(get_test(v,rtti,cf,OneZero,timeout));
         case CFunction([{ t : CAbstract('stx.unit.test.Async',[]) } ],CAbstract('Void',[])) :
           //__.log().debug('${cf.name} OneZero');
-          Some(get_test(v,rtti,cf,OneZero));
+          Some(get_test(v,rtti,cf,OneZero,timeout));
         case CFunction(_,_)  :
           var lines = [
             'In "${rtti.path}.${cf.name}"": test* functions have a particular shape: "Void -> Option<Async>" or "Void->Void"',
@@ -118,12 +118,12 @@ class TestCaseLift{
   static public function get_pos(def:Classdef,cf:ClassField):Pos{
     return Position.make(def.file,def.path,cf.name,cf.line);
   }
-  static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,size){
+  static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,size,timeout){
     var name      = classfield.name;
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
     var call      = make_call(test_case,name,def,classfield,size);
     var file      = def.file;
-    return new MethodCall(test_case,def,classfield,call);
+    return new MethodCall(test_case,def,classfield,call,timeout);
   }
   static private function make_call(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:FnType):TestMethodZero{
     var call_zero_zero = ()  -> {

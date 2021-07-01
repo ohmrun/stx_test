@@ -1,8 +1,8 @@
 package stx.unit.test;
 
 @:rtti class TestCase extends Assert{
-  private function __stx__tests(){
-    return TestCaseLift.get_tests(this);
+  private function __stx__tests(timeout){
+    return TestCaseLift.get_tests(this,timeout);
   }
   public function __setup():Option<Async>{
     return None;
