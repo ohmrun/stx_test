@@ -10,6 +10,7 @@
 -lib stx_fn
 -lib stx_assert
 -lib stx_show
+-lib stx_bake
 -lib polygonal-printf 
 
 -lib hx3compat

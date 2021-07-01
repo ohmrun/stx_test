@@ -1,14 +1,25 @@
+
+using stx.Nano;
+
 import stx.Test;
 import stx.unit.Test;
 
 import stx.test.*;
 
+using stx.test.Log;
+
 class Main {
 	static function main() {
-		trace('main');
+		var logger : stx.log.logger.Unit = stx.log.Facade.unit();
 		#if (sys )
-			stx.log.Signal.instance.attach(new stx.log.logger.ConsoleLogger());
+				logger = new stx.log.logger.ConsoleLogger();
+			stx.log.Signal.instance.attach(logger);
 		#end
+		logger.includes.push("stx/test");
+		logger.includes.push("stx/stream");
+
+		__.log().info('main');
+
 		var signal = new Runner().apply(
 			[
 				//new DependsTest(),

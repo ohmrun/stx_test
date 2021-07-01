@@ -68,7 +68,7 @@ class MethodCallRun{
   static public function apply(method_call:MethodCall):Stream<TestPhaseSum,TestFailure>{
     return Stream.fromThunkFuture(() -> method_call.call().map(
       eff -> {
-        __.log().debug('${method_call.field.name} called');
+        stx.test.Log.log(__).debug('${method_call.field.name} called');
         return eff().fold(
           (failure) -> {
             method_call.object.test_error('EFF',failure);
@@ -78,7 +78,7 @@ class MethodCallRun{
         );
     })).flat_map(
       (_:Noise) -> {
-        trace('having called effects');
+        __.log().debug('having called effects');
         var asserts = method_call.assertions;
         var stream  =  Stream.fromArray(asserts).flat_map(
           (val:Assertion) -> {

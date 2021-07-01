@@ -25,7 +25,8 @@
         "stx_fn"            : "git:https://github.com/ohmrun/stx_fn.git",
         "stx_assert"        : "git:https://github.com/ohmrun/stx_assert.git",
         "stx_log"           : "git:https://github.com/ohmrun/stx_log.git",
-        "stx_show"          : "git:https://github.com/ohmrun/stx_show.git"
+        "stx_show"          : "git:https://github.com/ohmrun/stx_show.git",
+        "stx_stream"        : "git:https://github.com/ohmrun/stx_stream.git"
     },
     "classPath": "src/main/haxe"
 }

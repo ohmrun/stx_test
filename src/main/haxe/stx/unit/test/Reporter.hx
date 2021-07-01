@@ -97,7 +97,7 @@ class Reporter extends Clazz{
         case TP_ReportTestSuiteComplete(test_suite)       :
           println("_________________________________________________");
           for(test_case_data in test_suite.test_cases){
-            //trace(test_case_data.has_assertions());
+            __.log().debug(test_case_data.has_assertions());
             if(!test_case_data.has_assertions()){
               print_status(yellow_question_on_black,' <yellow>${test_case_data.clazz.path}</yellow>');
             }else if(!test_case_data.has_failures()){

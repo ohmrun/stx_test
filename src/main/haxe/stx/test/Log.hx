@@ -2,9 +2,11 @@ package stx.test;
 
 using stx.Nano;
 using stx.Log;
+using stx.Pkg;
 
 class Log{
   static public function log(wildcard:Wildcard){
-    return stx.Log.unit().tag('stx.test');
+    //trace(__.pkg().toString());
+    return stx.Log.pkg(__.pkg());
   }
 }

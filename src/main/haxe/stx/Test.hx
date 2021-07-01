@@ -7,7 +7,6 @@ using stx.Test;
 using stx.Log;
 
 using stx.Test;
-using stx.test.Log;
 
 class Test{
   static public function poke(wildcard:Wildcard,arr:Array<Dynamic>){ 
