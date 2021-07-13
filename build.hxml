@@ -11,6 +11,9 @@
 -lib stx_assert
 -lib stx_show
 -lib stx_bake
+-lib stx_pkg
+-lib stx_stream
+
 -lib polygonal-printf 
 
 -lib hx3compat

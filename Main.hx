@@ -1,17 +1,16 @@
 
 using stx.Nano;
 
-import stx.Test;
-import stx.unit.Test;
+using stx.Test;
 
-import stx.test.*;
+import stx.test.test.*;
 
 using stx.test.Logging;
 
 class Main {
 	static function main() {
-		var logger : stx.log.logger.Unit = stx.log.Facade.unit();
-		#if (sys )
+		var logger : stx.log.logger.Unit = stx.log.Facade.unit().prj();
+		#if (sys)
 				logger = new stx.log.logger.ConsoleLogger();
 			stx.log.Signal.instance.attach(logger);
 		#end

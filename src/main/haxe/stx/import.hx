@@ -14,8 +14,6 @@ using stx.Fn;
 using stx.Assert;
 using stx.Log;
 using stx.Show;
-
-
-using stx.unit.Test;
+using stx.Test;
 
 using stx.test.Logging;
