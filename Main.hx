@@ -9,7 +9,7 @@ using stx.test.Logging;
 
 class Main {
 	static function main() {
-		var logger : stx.log.logger.Unit = stx.log.Facade.unit().prj();
+		var logger : stx.log.logger.Unit = __.log().global;
 		#if (sys)
 				logger = new stx.log.logger.ConsoleLogger();
 			stx.log.Signal.instance.attach(logger);

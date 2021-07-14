@@ -1,4 +1,4 @@
-package stx.test;
+package stx.test.core;
 
 class Dependencies{
   var source : Array<MethodCall>;

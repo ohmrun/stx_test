@@ -33,7 +33,6 @@ typedef Assert                = stx.test.Assert;
 typedef Assertions            = stx.test.Assertions;
 typedef Async                 = stx.test.Async;
 typedef AsyncResult<T>        = stx.test.AsyncResult<T>;
-typedef Dependencies          = stx.test.Dependencies;
 typedef FnType                = stx.test.FnType;
 typedef MethodCall            = stx.test.MethodCall;
 typedef Reporter              = stx.test.Reporter;
