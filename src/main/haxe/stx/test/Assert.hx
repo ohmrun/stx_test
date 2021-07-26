@@ -1,5 +1,6 @@
 package stx.test;
 
+//TODO raises
 class Assert{
   final __assertions : Assertions;
   public function new(){

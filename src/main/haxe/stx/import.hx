@@ -15,5 +15,6 @@ using stx.Assert;
 using stx.Log;
 using stx.Show;
 using stx.Test;
+using stx.Stream;
 
 using stx.test.Logging;

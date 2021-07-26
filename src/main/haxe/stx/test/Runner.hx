@@ -49,7 +49,7 @@ class TestCaseDataRun{
     var teardown  = updown(test_case_data.test_case.__teardown,timeout,TP_Teardown);
     return setup.seq(Stream.fromArray(test_case_data.method_calls).flat_map(
       (method_call) -> {
-        __.log().debug('apply: TestCaseDataRun: $test_case_data $method_call');
+      __.log().debug('apply: TestCaseDataRun: $test_case_data $method_call');
         var init      = Stream.pure(TP_StartTest(method_call));
         var before    = updown(test_case_data.test_case.__before,timeout,TP_Before);
         var after     = updown(test_case_data.test_case.__after,timeout,TP_After);
@@ -67,7 +67,8 @@ class TestCaseDataRun{
     return Stream.fromThunkFuture(() -> __.option(fn()).flatten().fold(
       (async) -> async.asFuture().first(Timeout.make(timeout)),
       ()      -> TestResult.unit()
-    ).map((x) -> x()).map(opt -> opt.fold(cons,()->TP_Null)));
+    ).map((x) -> x())
+     .map(opt -> opt.fold(cons,()->TP_Null)));
 
   }
 }
@@ -78,7 +79,7 @@ class MethodCallRun{
         __.log().debug('${method_call.field.name} called');
         return eff().fold(
           (failure) -> {
-            method_call.object.test_error('EFF',failure);
+            method_call.object.test_error('EFF',failure,method_call.position());
             return Noise;
           },
           () -> Noise

@@ -15,18 +15,18 @@ class Main {
 			stx.log.Signal.instance.attach(logger);
 		#end
 		logger.includes.push("stx/test");
-		logger.includes.push("stx/stream");
-		logger.level = DEBUG;
+		//logger.includes.push("stx/stream");
+		//logger.level = DEBUG;
 
 		__.log().info('main');
 
 		var signal = new Runner().apply(
 			[
-				new DependsTest(),
-				new TestTest(),
+				//new DependsTest(),
+				//new TestTest(),
 				new UseAsyncTest(),
-				new SynchronousErrorTest(),
-				new AsyncResultTest(),
+				//new SynchronousErrorTest(),
+				//new AsyncResultTest(),
 			]
 		);
 		new Reporter(signal).enact();

@@ -6,6 +6,7 @@ class UseAsyncTest extends TestCase{
     pass();
     async.done();
   }
+  // TODO report timeout
   public function test_timeout(async:Async){
     trace("JERJ");
     pass();

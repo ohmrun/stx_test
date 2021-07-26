@@ -46,7 +46,6 @@ typedef TestMethodZero        = stx.test.TestMethodZero;
 typedef TestPhaseSum          = stx.test.TestPhaseSum;
 typedef TestResult            = stx.test.TestResult;
 typedef TestSuite             = stx.test.TestSuite;
-typedef Timeout               = stx.test.Timeout;
 typedef Util                  = stx.test.Util;
 typedef WithPos<T>            = stx.test.WithPos<T>;
 typedef WrappedFuture<T>      = stx.test.WrappedFuture<T>;
