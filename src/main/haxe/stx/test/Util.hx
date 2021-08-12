@@ -7,6 +7,7 @@ class Util{
     }catch(e:Err<Dynamic>){
       __.reject(e.map(E_Test_Err));
     }catch(e:Dynamic){
+      throw e;
       __.reject(__.fault(pos).of(E_Test_Dynamic(e)));
     }
   }

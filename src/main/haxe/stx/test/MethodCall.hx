@@ -18,6 +18,7 @@ class MethodCall{
   
   public function call():TestResult{
     __.log().debug('call: timeout : ${get_timeout()}');
+    __.assert().exists(_call);
     this.timestamp = haxe.Timer.stamp();
     var res = Util.or_res(_call.prj());
     return res.fold(
