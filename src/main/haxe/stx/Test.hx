@@ -1,5 +1,8 @@
 package stx;
 
+#if sys
+  using stx.Sys;
+#end
 
 class Test{
   static public function poke(wildcard:Wildcard,arr:Array<Dynamic>){ 
@@ -12,7 +15,7 @@ class Test{
   static public function test<T:TestCase>(wildcard:Wildcard,tests:Array<T>,poke:Array<Dynamic>){
     final tests = 
       #if sys
-        if (stx.sys.Env.get("POKE").is_defined()){
+        if (__.sys().env("POKE").is_defined()){
           tests.filter(stx.Test.poke(__,poke));
         }else{
           tests;

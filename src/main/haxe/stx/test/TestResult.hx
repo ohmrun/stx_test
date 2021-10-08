@@ -2,10 +2,9 @@ package stx.test;
 
 @:forward abstract TestResult(Future<TestEffect>) from Future<TestEffect> to Future<TestEffect>{
   @:from static public function pure(self:TestEffect):TestResult{
-    return new Future(
+    return Future.irreversible(
       (cb) -> {
         cb(self);
-        return () -> {};
       }
     );
   }

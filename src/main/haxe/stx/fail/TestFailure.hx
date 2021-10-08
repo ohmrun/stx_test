@@ -7,6 +7,7 @@ enum TestFailure{
   TestTimedOut(after:Int);
   NoTestNamed(name:String);
   
+  
   E_Test_Dynamic(e:Dynamic);
   E_Test_Err(err:stx.nano.Err<Dynamic>);
 }

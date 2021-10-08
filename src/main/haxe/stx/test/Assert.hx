@@ -33,9 +33,13 @@ class Assert{
     reason = reasoning(() -> __.explain(lhs).should().be(rhs,'the same as'),reason);
     assert(Assertion.make(Equality.equals(lhs,rhs),reason,null,pos));
   }
-  public function isTrue(v:Bool,?reason:String,?pos:Pos){
+  public function is_true(v:Bool,?reason:String,?pos:Pos){
     reason = reasoning(() -> __.explain(v).should().be(true),reason);
     assert(Assertion.make(v,reason,null,pos));
+  }
+  public function is_false(v:Bool,?reason:String,?pos:Pos){
+    reason = reasoning(() -> __.explain(v).should().be(false),reason);
+    assert(Assertion.make(!v,reason,null,pos));
   }
   public function exists(v:Dynamic,?reason:String,?pos:Pos){
     reason = reasoning(() -> __.explain('value').should().exist(),reason);

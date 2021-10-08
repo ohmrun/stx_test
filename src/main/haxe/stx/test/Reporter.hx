@@ -1,5 +1,8 @@
 package stx.test;
 
+#if (sys || hxnodejs)
+  using stx.Sys;
+#end
 class Reporter extends Clazz{ 
   var stream : Stream<TestPhaseSum,TestFailure>;
   public function new(stream){
@@ -117,7 +120,7 @@ class Reporter extends Clazz{
               for(assertion in method_call.assertions){
                 final predicate = 
                   #if sys
-                    stx.sys.Env.get('STX_TEST__VERBOSE').is_defined();
+                    __.sys().env('STX_TEST__VERBOSE').is_defined();
                   #else
                     false;
                   #end
