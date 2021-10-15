@@ -10,5 +10,6 @@ class Util{
       throw e;
       __.reject(__.fault(pos).of(E_Test_Dynamic(e)));
     }
+    //return __.accept(fn());
   }
 }
