@@ -17,7 +17,7 @@ package stx.test;
       return Option.pure(self);
     } 
   }
-  @:from static public function fromErr<T>(err:Err<T>):TestEffect{
+  @:from static public function fromError<T>(err:Error<T>):TestEffect{
     return () -> {
       return Option.pure(E_Test_Err(err));
     } 

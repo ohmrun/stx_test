@@ -23,7 +23,7 @@ class Assert{
   public function fail(reason="force fail",?pos:Pos){
     assert(Assertion.make(false,reason,null,pos));
   }
-  public function error(err:Err<Dynamic>,?pos:Pos){
+  public function error(err:Error<Dynamic>,?pos:Pos){
     assert(Assertion.make(false,err.data.toString(),E_Test_Err(err),pos));
   }
   public function test_error(reason:String,err:TestFailure,?pos:Pos){

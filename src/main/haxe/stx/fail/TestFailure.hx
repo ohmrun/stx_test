@@ -9,5 +9,5 @@ enum TestFailure{
   
   
   E_Test_Dynamic(e:Dynamic);
-  E_Test_Err(err:stx.nano.Err<Dynamic>);
+  E_Test_Err(err:stx.pico.Error<Dynamic>);
 }

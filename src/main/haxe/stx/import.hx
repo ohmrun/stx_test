@@ -3,7 +3,7 @@ package stx;
 import haxe.rtti.Rtti;
 import haxe.rtti.CType;
 
-import tink.CoreApi;
+import tink.core.Future;
 
 
 import stx.fail.TestFailure;

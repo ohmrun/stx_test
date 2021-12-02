@@ -1,0 +1,12 @@
+{
+  "build" : {
+    "-lib" : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert"],
+    "-cp"  : ["src/main/haxe"],
+    "main" : {
+      "-main"     : "Main",
+      "interp"  : {
+        "--interp"  : true
+      } 
+    }
+  }
+}

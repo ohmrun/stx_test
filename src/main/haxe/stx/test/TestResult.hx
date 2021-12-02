@@ -26,7 +26,7 @@ package stx.test;
   //     }
   //   );
   // }
-  static public function fromErr<E>(err:Err<E>){
-    return pure(TestEffect.fromErr(err));
+  static public function fromError<E>(err:Error<E>){
+    return pure(TestEffect.fromError(err));
   }
 } 
