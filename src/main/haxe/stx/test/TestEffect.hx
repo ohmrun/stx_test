@@ -6,7 +6,7 @@ package stx.test;
   }
   static public function fromFn(fn:Void->Void):TestEffect{
     return () -> {
-      return Util.or_res(fn.fn().returning(tink.core.Noise).prj()).fold(
+      return Util.or_res(fn.fn().returning(Noise).prj()).fold(
         ok -> Option.unit(),
         no -> Option.pure(E_Test_Err(no))
       );
@@ -15,11 +15,6 @@ package stx.test;
   @:from static public function fromTestFailure(self:TestFailure):TestEffect{
     return () -> {
       return Option.pure(self);
-    } 
-  }
-  @:from static public function fromError<T>(err:Error<T>):TestEffect{
-    return () -> {
-      return Option.pure(E_Test_Err(err));
     } 
   }
   @:from static public function fromError<T>(err:Error<T>):TestEffect{

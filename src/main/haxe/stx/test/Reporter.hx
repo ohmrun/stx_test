@@ -9,7 +9,7 @@ class Reporter extends Clazz{
     super();
     this.stream = stream;
   }
-  private function close(err:Error<Dynamic>){
+  private function close(err:Exception<Dynamic>){
     if(err != null){
       __.log().error(err.toString());
     }
