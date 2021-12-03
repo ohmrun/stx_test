@@ -6,7 +6,7 @@ package stx.test;
   }
   static public function fromFn(fn:Void->Void):TestEffect{
     return () -> {
-      return Util.or_res(fn.fn().returning(Noise).prj()).fold(
+      return Util.or_res(fn.fn().returning(tink.core.Noise).prj()).fold(
         ok -> Option.unit(),
         no -> Option.pure(E_Test_Err(no))
       );

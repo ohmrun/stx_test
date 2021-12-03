@@ -4,7 +4,7 @@ class Util{
   static public inline function or_res<U>(fn:Void->U,?pos:Pos):Res<U,TestFailure>{
     return try{
       __.accept(fn());
-    }catch(e:Err<Dynamic>){
+    }catch(e:Error<Dynamic>){
       __.reject(e.map(E_Test_Err));
     }catch(e:Dynamic){
       throw e;

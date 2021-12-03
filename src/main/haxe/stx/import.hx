@@ -4,7 +4,7 @@ import haxe.rtti.Rtti;
 import haxe.rtti.CType;
 
 import tink.core.Future;
-
+import tink.core.Noise;
 
 import stx.fail.TestFailure;
 

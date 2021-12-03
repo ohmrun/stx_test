@@ -28,7 +28,7 @@ package stx.test;
               cb(__.triple(pos,this,AsyncResult.pure(v)));
             }
           );
-        }catch(e:Err<Dyn>){
+        }catch(e:Error<Dyn>){
           this.error(e,pos);
           cb(__.triple(pos,this,AsyncResult.unit()));
           null;
