@@ -22,4 +22,14 @@ package stx.test;
       return Option.pure(E_Test_Err(err));
     } 
   }
+  @:from static public function fromError<T>(err:Error<T>):TestEffect{
+    return () -> {
+      return Option.pure(E_Test_Err(err.except()));
+    } 
+  }
+  @:from static public function fromException<T>(err:Exception<T>):TestEffect{
+    return () -> {
+      return Option.pure(E_Test_Err(err));
+    } 
+  }
 }
