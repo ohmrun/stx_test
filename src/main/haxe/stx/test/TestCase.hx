@@ -32,8 +32,8 @@ package stx.test;
           this.error(e,pos);
           cb(__.triple(pos,this,AsyncResult.unit()));
           null;
-        }catch(e:Dynamic){
-          this.error(__.fault(pos).of(E_Test_Dynamic(e)),pos);
+        }catch(e:haxe.Exception){
+          this.exception(e,pos);
           cb(__.triple(pos,this,AsyncResult.unit())); 
           null;
         }

@@ -2,6 +2,15 @@
   "build" : {
     "-lib" : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert"],
     "-cp"  : ["src/main/haxe"],
+    "unit" : {
+      "--macro" : [
+        "include('stx.Test',true)",
+        "include('stx.test',true)"
+      ],
+      "interp" : {
+        "--interp" : true
+      }
+    },
     "main" : {
       "-main"     : "Main",
       "interp"  : {

@@ -19,7 +19,7 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
           }
         ).fold(
           (ok)  -> {},
-          (no) -> x.snd().error(__.fault(x.fst()).of(E_Test_Err(no)),x.fst())
+          (no) -> x.snd().error(__.fault(x.fst()).of(E_Test_Rejection(no)),x.fst())
         );
         if(async != null){
           async.done();

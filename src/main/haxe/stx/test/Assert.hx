@@ -13,9 +13,9 @@ class Assert{
     reason = reasoning(() -> __.explain(self).should().be_equal_to(that),reason);
     assert(Assertion.make(self == that, reason,TestFailedBecause(reason), pos));
   } 
-  public function raise(error:Dynamic,?reason:String,?pos:Pos){
+  public function raise(error:haxe.Exception,?reason:String,?pos:Pos){
     reason = __.option(reason).def( () -> Std.string(error));
-    assert(Assertion.make(false,reason,E_Test_Dynamic(error),pos));
+    assert(Assertion.make(false,reason,E_Test_Exception(error),pos));
   }
   public function pass(?reason='pass',?pos:Pos){
     assert(Assertion.make(true,reason,NullTestFailure,pos));
@@ -23,11 +23,14 @@ class Assert{
   public function fail(reason="force fail",?pos:Pos){
     assert(Assertion.make(false,reason,null,pos));
   }
-  public function exception(err:Exception<Dynamic>,?pos:Pos){
-    assert(Assertion.make(false,err.val.toString(),E_Test_Err(err),pos));
+  public function rejection(err:Rejection<Dynamic>,?pos:Pos){
+    assert(Assertion.make(false,err.val.toString(),E_Test_Rejection(err),pos));
   }
   public function error(err:Error<Dynamic>,?pos:Pos){
-    assert(Assertion.make(false,err.val.toString(),E_Test_Err(err.except()),pos));
+    assert(Assertion.make(false,err.val.toString(),E_Test_Rejection(err.except()),pos));
+  }
+  public function exception(err:haxe.Exception,?pos:Pos){
+    assert(Assertion.make(false,err.details(),E_Test_Exception(err),pos));
   }
   public function test_error(reason:String,err:TestFailure,?pos:Pos){
     assert(Assertion.make(false,reason,err,pos));

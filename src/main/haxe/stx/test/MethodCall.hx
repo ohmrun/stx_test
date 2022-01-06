@@ -20,13 +20,14 @@ class MethodCall{
     __.log().debug('call: timeout : ${get_timeout()}');
     __.assert().exists(_call);
     this.timestamp = haxe.Timer.stamp();
-    var res = Util.or_res(_call.prj());
+    final pos = Position.make(clazz.file,clazz.path,field.name,field.line,[]);
+    var res   = Util.or_res(_call.prj(),pos);
     return res.fold(
       (ok:Option<Async>) -> ok.fold(
         async -> async.asFuture().first(Timeout.make(get_timeout())),
         ()    -> TestResult.unit()
       ),
-      no -> TestEffect.fromException(no)
+      no -> TestEffect.fromRejection(no)
     );
   }
   

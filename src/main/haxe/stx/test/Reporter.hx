@@ -9,7 +9,7 @@ class Reporter extends Clazz{
     super();
     this.stream = stream;
   }
-  private function close(err:Exception<Dynamic>){
+  private function close(err:Rejection<Dynamic>):Void{
     if(err != null){
       __.log().error(err.toString());
     }
@@ -57,32 +57,37 @@ class Reporter extends Clazz{
   private function get_good():String{
     return green_tick_on_black;
   }
-  private inline function println(str:String,indent:String = ""){
+  private inline function println(str:String,indent:String = ""):Void{
     Console.log('${indent}${str}');
   }
-  private inline function print_status(icon:String,str:String,indent:String = ""){
+  private inline function print_status(icon:String,str:String,indent:String = ""):Void{
     Console.log('$icon ${indent}${str}');
   }
   public function enact(){
     var closed = false;
-    function serve(data:TestPhaseSum):Void{
+    function serve(data:TestPhaseSum){
       final l0                    = indenter('');
       final l1                    = indenter(l0);
       final l2                    = indenter(l1);
       final l3                    = indenter(l2);
-      final method_call_string_fn = (test:MethodCall)     -> '<blue>${test.clazz.path}::${test.field.name}</blue>';
-      final test_case_string_fn   = (test_case:TestCaseData)  -> '<light_white>${test_case.clazz.path}</light_white>';
+      final method_call_string_fn = 
+        (test:MethodCall)           -> '<blue>${test.clazz.path}::${test.field.name}</blue>';
+      final test_case_string_fn   = 
+        (test_case:TestCaseData)    -> '<light_white>${test_case.clazz.path}</light_white>';
   
       switch(data){
         case TP_Null                              : 
         case TP_Tick(info)                        : println(info);
         case TP_StartTestCase(test_case_data)     : println(test_case_string_fn(test_case_data),l1);
         case TP_StartTest(method_call)            : println(method_call_string_fn(method_call),l2);
-        case TP_ReportFatal(err)                  : println('<red>${err.toString()}</red>');
+        case TP_ReportFatal(err)                  : 
+          println('<red>${err.toString()}</red>');
+          println('${err.stack}');
         case TP_Setup(err)
            | TP_Before(err)
            | TP_After(err) 
-           | TP_Teardown(err)                     : println('<red>${err}</red>');
+           | TP_Teardown(err)                     : 
+          println('<red>${err.toString()}</red>');
         case TP_ReportFailure(assertion,_)        :
           final assertion_string = assertion.outcome().fold(
             s -> s,
@@ -127,7 +132,10 @@ class Reporter extends Clazz{
                 if (predicate){
                   assertion.truth.if_else(
                     () -> print_status(green_tick_on_black,'<green>${assertion}</green>',l1),
-                    () -> print_status(red_cross_on_black,'<red>$assertion</red>',l1)
+                    () -> {
+                      print_status(red_cross_on_black,'<red>$assertion</red>',l1);
+                      println('${__.option(assertion.failure).flat_map(x -> __.option(x.stack)).defv(null)}');
+                    } 
                   );
                 }else{
                   assertion.truth.if_else(
@@ -139,15 +147,16 @@ class Reporter extends Clazz{
             }
           }
           if(!test_suite.is_clean()){
-            close(__.fault().external('suite failing'));
+            close(__.fault().explain(_ -> _.e_suite_failed()));
           }else{
             close(null);
           }
+
           closed = true;
       }
     }
     this.stream.handle(
-      (chunk:Chunk<TestPhaseSum,TestFailure>) -> {
+      function(chunk:Chunk<TestPhaseSum,TestFailure>):Void{ 
         chunk.fold(
           val -> serve(val),
           end -> if(!closed){

@@ -4,11 +4,11 @@ package stx.test;
   @:noUsing static public function unit():TestEffect{
     return () -> Option.unit();
   }
-  static public function fromFn(fn:Void->Void):TestEffect{
+  static public function fromFn(fn:Void->Void,?pos:Pos):TestEffect{
     return () -> {
-      return Util.or_res(fn.fn().returning(Noise).prj()).fold(
+      return Util.or_res(fn.fn().returning(Noise).prj(),pos).fold(
         ok -> Option.unit(),
-        no -> Option.pure(E_Test_Err(no))
+        no -> Option.pure(E_Test_Rejection(no))
       );
     }
   }
@@ -19,12 +19,12 @@ package stx.test;
   }
   @:from static public function fromError<T>(err:Error<T>):TestEffect{
     return () -> {
-      return Option.pure(E_Test_Err(err.except()));
+      return Option.pure(E_Test_Rejection(err.except()));
     } 
   }
-  @:from static public function fromException<T>(err:Exception<T>):TestEffect{
+  @:from static public function fromRejection<T>(err:Rejection<T>):TestEffect{
     return () -> {
-      return Option.pure(E_Test_Err(err));
+      return Option.pure(E_Test_Rejection(err));
     } 
   }
 }

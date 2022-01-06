@@ -95,8 +95,8 @@ class Explainers<T>{
   public function exist(){
     return go('should exist.');
   }
-  public function raises(d:Dynamic){
-    return go('raise error: %s',[d]);
+  public function raises(e:haxe.Exception){
+    return go('raise error: %s',[e]);
   }
 }
 class Explained<T> {

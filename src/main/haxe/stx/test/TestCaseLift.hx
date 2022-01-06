@@ -58,7 +58,7 @@ class TestCaseLift{
           ).map(
             __.decouple(
               (string,option:Option<MethodCall>) -> {
-                var value = option.resolve(f -> f.external('no dependency $string')).fudge();
+                var value = option.resolve(f -> f.explain(_ -> _.e_dependency_not_found('$string'))).fudge();
                 return __.couple(string,value); 
               }  
             )  
@@ -138,9 +138,8 @@ class TestCaseLift{
     function wrap(fn:Void->Option<Async>):Void->Option<Async>{
       return () -> try{
         fn();
-      }catch(e:Dynamic){
-        __.log().debug(e);
-        test_case.raise(E_Test_Dynamic(e),get_pos(def,cf));
+      }catch(e:haxe.Exception){
+        test_case.raise(e,get_pos(def,cf));
         return None;
       }
     }

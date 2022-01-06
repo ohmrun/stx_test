@@ -16,9 +16,9 @@ abstract AsyncResult<T>(Option<T>) from Option<T>{
       ()  -> {}
     );
   }
-  public function use(fn:T->Null<Report<TestFailure>>,?nil:Void->Null<Report<TestFailure>>):Report<TestFailure>{
+  public function use(fn:T->Null<Report<TestFailure>>,?nil:Void->Null<Report<TestFailure>>,?pos:Pos):Report<TestFailure>{
     return this.fold(
-      (ok) -> Util.or_res(fn.bind(ok)).fold(
+      (ok) -> Util.or_res(fn.bind(ok),pos).fold(
         (ok) -> __.option(ok).defv(__.report()),
         (no) -> no.report()
       ),
@@ -30,11 +30,11 @@ abstract AsyncResult<T>(Option<T>) from Option<T>{
   }
   public function test(val:T->Void,?nil:Void->Null<Report<TestFailure>>,?pos:Pos){
     return this.fold(
-      (ok) -> Util.or_res((val.bind(ok):Block).returning(null).prj()).fold(
+      (ok) -> Util.or_res((val.bind(ok):Block).returning(null).prj(),pos).fold(
         (ok) -> __.report(),
         (no) -> no.report()
       ),
-      () -> Util.or_res((nil:Block).returning(null).prj()).fold(
+      () -> Util.or_res((nil:Block).returning(null).prj(),pos).fold(
         (ok) -> __.report(f -> f.of(NullTestFailure),pos),
         (no) -> no.report()
       )
