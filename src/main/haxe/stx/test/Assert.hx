@@ -59,6 +59,15 @@ class Assert{
     }
     assert(Assertion.make(truth,reason,pos));
   }
+  public function raises<T>(fn:Void->Void,reason:String='Expectation of thrown error not met',?pos:Pos){
+    var truth = false;
+    try{
+      fn();
+    }catch(e:Dynamic){
+      truth = true;
+    }
+    assert(Assertion.make(truth,reason,pos));
+  }
   //TODO tighten this up
   //Top level enum the same.
   public function alike(oI:Dynamic,oII:Dynamic,?reason:String,?pos:Pos){
