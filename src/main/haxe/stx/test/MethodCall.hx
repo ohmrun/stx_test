@@ -17,7 +17,7 @@ class MethodCall{
   public var timestamp    : Float;
   
   public function call():TestResult{
-    __.log().debug('call: timeout : ${get_timeout()}');
+    __.log().blank('call: timeout : ${get_timeout()}');
     __.assert().exists(_call);
     this.timestamp = haxe.Timer.stamp();
     final pos = Position.make(clazz.file,clazz.path,field.name,field.line,[]);

@@ -12,35 +12,12 @@ class Runner{
     var sig   = Stream.fromArray(test_cases);
     return sig.flat_map(
       val -> {
-        __.log().debug('test case $val');
+        __.log().trace('TestCase:= $val');
         return Stream.pure(TP_StartTestCase(val))
           .seq(TestCaseDataRun.apply(val,timeout))
           .seq(Stream.effect(() -> {__.log()("After TestCaseDataRun");}));
       }
     ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(test_cases))));
-    // return Stream.make(
-    //   (cb) -> {
-    //     
-    //     __.log().debug('apply: Runner');       
-        
-    //     // next.handle(
-    //     //   (x) -> x.fold(
-    //     //     val -> cb(Val(val)),
-    //     //     end -> __.option(end).fold(
-    //     //       err -> cb(Val(TP_ReportFatal(err))),
-    //     //       ()  -> {
-    //     //         cb(
-    //     //           Val(TP_ReportTestSuiteComplete(new TestSuite(test_cases)))
-    //     //         );
-    //     //         //cb(End());
-    //     //       }
-    //     //     ),
-    //     //     () -> {}
-    //     //   )
-    //     // );
-    //     return () -> {}
-    //   }
-    // );
   } 
 }
 class TestCaseDataRun{
@@ -49,21 +26,21 @@ class TestCaseDataRun{
     var teardown  = updown(test_case_data.test_case.__teardown,timeout,TP_Teardown);
     return setup.seq(Stream.fromArray(test_case_data.method_calls).flat_map(
       (method_call) -> {
-      __.log().debug('apply: TestCaseDataRun: $test_case_data $method_call');
+      __.log().trace('apply: TestCaseDataRun: $test_case_data $method_call');
         var init      = Stream.pure(TP_StartTest(method_call));
         var before    = updown(test_case_data.test_case.__before,timeout,TP_Before);
         var after     = updown(test_case_data.test_case.__after,timeout,TP_After);
         return 
           init.seq(before)
-              .seq(Stream.effect(() -> __.log().debug("before method_call_run")))
+              .seq(Stream.effect(() -> __.log().trace('before $test_case_data $method_call')))
               .seq(MethodCallRun.apply(method_call))
-              .seq(Stream.effect(() -> __.log().debug("after method_call_run")))
+              .seq(Stream.effect(() -> __.log().trace('after $test_case_data $method_call')))
               .seq(after);
       }
     )).seq(teardown).seq(Stream.pure(TP_ReportTestCaseComplete(test_case_data)));
   }
   static function updown(fn:Void->Option<Async>,timeout:Int,cons){
-    __.log().debug('updown');
+    __.log().blank('updown');
     return Stream.fromThunkFuture(() -> __.option(fn()).flatten().fold(
       (async) -> async.asFuture().first(Timeout.make(timeout)),
       ()      -> TestResult.unit()
@@ -86,21 +63,14 @@ class MethodCallRun{
         );
     })).flat_map(
       (_:Noise) -> {
-        __.log().debug('having called effects');
+        __.log().trace('after ${method_call.field.name} effects');
         var asserts = method_call.assertions;
         var stream  =  Stream.fromArray(asserts).flat_map(
           (val:Assertion) -> {
-            __.log().debug("to run AssertionRun");
+            __.log().trace('before ${method_call.field.name} AssertionRun');
             return AssertionRun.apply(val,method_call);
           }
         );
-        // stream = Stream.lift(
-        //   stream.prj().map(
-        //     __.command(
-        //       x -> trace(x)
-        //     )
-        //   )
-        // );
         return stream;
       }
     );

@@ -1,7 +1,10 @@
 {
   "build" : {
-    "-lib" : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert"],
-    "-cp"  : ["src/main/haxe"],
+    "-lib"  : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert"],
+    "-D"    : {
+      "stx.log.filter.show" : false
+    },
+    "-cp"  :  ["src/main/haxe"],
     "unit" : {
       "--macro" : [
         "include('stx.Test',true)",

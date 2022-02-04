@@ -17,9 +17,9 @@ class Reporter extends Clazz{
       #if (sys || hxnodejs)
         __.log().debug('shutting down app...');
         if(err == null){
-          Sys.exit(0);
+          std.Sys.exit(0);
         }else{
-          Sys.exit(-1);
+          std.Sys.exit(-1);
         }
       #else
         #error
@@ -64,6 +64,12 @@ class Reporter extends Clazz{
     Console.log('$icon ${indent}${str}');
   }
   public function enact(){
+    // __.log().debug(_ -> _.show(std.Sys.getEnv('TEST')));
+    // __.log().debug(_ -> _.show(std.Sys.getEnv('HOME')));
+    // __.log().debug(_ -> _.show(std.Sys.getEnv('STX_TEST__VERBOSE')));
+    //final is_verbose = __.sys().env('STX_TEST__VERBOSE').is_defined();
+    //__.log().info('STX_TEST__VERBOSE = $is_verbose');
+  
     var closed = false;
     function serve(data:TestPhaseSum){
       final l0                    = indenter('');
@@ -93,25 +99,25 @@ class Reporter extends Clazz{
             s -> s,
             (err:TestFailure) -> __.show(err)
           );
-          print_status(red_cross_on_black,' <red>${assertion_string}</red>',l3); 
+          print_status(red_cross_on_black,'<red>${assertion_string}</red>',l3); 
         case TP_ReportTestComplete(method_call)           :
           if(!method_call.has_assertions()){
-            print_status(yellow_question_on_black,' <yellow>no assertions</yellow>',l3);
+            print_status(yellow_question_on_black,'<yellow>no assertions</yellow>',l3);
           }
         case TP_ReportTestCaseComplete(test_case_data)    :
           if(!test_case_data.has_assertions()){
-            print_status(yellow_question_on_black,' <yellow>no assertions</yellow>',l3);
+            print_status(yellow_question_on_black,'<yellow>no assertions</yellow>',l3);
           }           
         case TP_ReportTestSuiteComplete(test_suite)       :
           println("_________________________________________________");
           for(test_case_data in test_suite.test_cases){
             __.log().debug(test_case_data.has_assertions());
             if(!test_case_data.has_assertions()){
-              print_status(yellow_question_on_black,' <yellow>${test_case_data.clazz.path}</yellow>');
+              print_status(yellow_question_on_black,'<yellow>${test_case_data.clazz.path}</yellow>');
             }else if(!test_case_data.has_failures()){
-              print_status(green_tick_on_black,' <green>${test_case_data.clazz.path}</green>');
+              print_status(green_tick_on_black,'<green>${test_case_data.clazz.path}</green>');
             }else{
-              print_status(red_cross_on_black,' <red>${test_case_data.clazz.path}</red>');
+              print_status(red_cross_on_black,'<red>${test_case_data.clazz.path}</red>');
             }
             for(method_call in test_case_data.method_calls){
               var status = method_call.has_assertions().if_else(
@@ -156,7 +162,7 @@ class Reporter extends Clazz{
       }
     }
     this.stream.handle(
-      function(chunk:Chunk<TestPhaseSum,TestFailure>):Void{ 
+      function(chunk:Chunk<TestPhaseSum,TestFailure>):Void { 
         chunk.fold(
           val -> serve(val),
           end -> if(!closed){
@@ -166,40 +172,5 @@ class Reporter extends Clazz{
         );
       } 
     ); 
-    // var println   = Sys.println;
-    // for (tcd in data.data){
-    //   //trace(tcd.has_failures());
-    //   //trace(@:privateAccess tcd.val.__assertions);
-    //   //trace(@:privateAccess tcd.val.__assertions.failures);
-    //   final method_call_string_fn = (test:MethodCall) -> '<blue>${test.clazz.path}::${test.field.name}</blue>';
-    //   if(tcd.has_failures()){
-    //     Console.log('$rtob <light_white>${tcd.type.path}</light_white>');
-    //     for(test in tcd.data){
-          
-    //       var method_call_string = method_call_string_fn(test);
-
-    //       var failures = test.assertions.failures;
-    //       //trace(@:privateAccess tcd.val.__assertions);
-    //       //trace(test.assertions);
-    //       if(failures.length > 0){   
-    //         Console.log('${l0}${method_call_string}');
-    //         for(failure in failures){
-    //           Console.log('$rtob <red>${l1}${failure}</red>');
-    //         }
-    //       }else if(test.assertions.length == 0){
-    //         Console.log('${l0}${method_call_string}');
-    //         Console.log('${l1}<yellow>no assertions made</yellow>');
-    //       }else{
-    //         Console.log('$gtob ${l0}${method_call_string} ');
-    //       }
-    //     }
-    //   }else{
-    //     Console.log('$gtob  <light_white>${tcd.type.path}</light_white> ');
-    //     for(test in tcd.data){
-    //       var method_call_string = method_call_string_fn(test);
-    //       Console.log('$gtob ${l0}${method_call_string} ');
-    //     }
-    //   }
-    // }
   }
 }
