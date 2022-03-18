@@ -130,7 +130,7 @@ class Reporter extends Clazz{
               print_status(status,'<blue>${method_call.field.name}</blue>');
               for(assertion in method_call.assertions){
                 final predicate = 
-                  #if sys
+                  #if (sys || hxnodejs)
                     __.sys().env('STX_TEST__VERBOSE').is_defined();
                   #else
                     false;

@@ -32,7 +32,7 @@ class Assert{
   public function exception(err:haxe.Exception,?pos:Pos){
     assert(Assertion.make(false,err.details(),E_Test_Exception(err),pos));
   }
-  public function test_error(reason:String,err:TestFailure,?pos:Pos){
+  public function error_test(reason:String,err:TestFailure,?pos:Pos){
     assert(Assertion.make(false,reason,err,pos));
   }
   public function same<T>(lhs:T,rhs:T,?reason:String,?pos:Pos){

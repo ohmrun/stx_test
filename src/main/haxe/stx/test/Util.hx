@@ -10,9 +10,6 @@ class Util{
     }catch(e:haxe.Exception){
       trace(e.stack);
       __.reject(Rejection.make(Some(REJECT(E_Test_Exception(e))),None,pos));
-    }catch(e:Dynamic){
-      trace(e);
-      __.reject(Rejection.make(Some(REJECT(TestFailedBecause('$e'))),None,pos));
     }
     //return __.accept(fn());
   }

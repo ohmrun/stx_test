@@ -7,7 +7,7 @@ class Runner{
   }
   public function apply<T:TestCase>(cases:Array<T>):Stream<TestPhaseSum,TestFailure>{
     var test_cases  : Array<TestCaseData> = cases.map(
-      (t:T) -> TestCaseLift.get_tests(t,timeout) 
+      (t:T) -> @:privateAccess t.__stx__tests(timeout) 
     );
     var sig   = Stream.fromArray(test_cases);
     return sig.flat_map(
@@ -56,7 +56,7 @@ class MethodCallRun{
         __.log().debug('${method_call.field.name} called');
         return eff().fold(
           (failure) -> {
-            method_call.object.test_error('EFF',failure,method_call.position());
+            method_call.object.error_test('EFF',failure,method_call.position());
             return Noise;
           },
           () -> Noise

@@ -14,11 +14,17 @@
         "--interp" : true
       }
     },
-    "main" : {
-      "-main"     : "Main",
+    "test" : {
+      "-main"     : "stx.test.Test",
       "interp"  : {
         "--interp"  : true
       } 
+    },
+    "boot" : {
+      "-D" : ["stx.boot"],
+      "interp" : {
+        "--interp" : true
+      }
     }
   }
 }
