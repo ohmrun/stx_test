@@ -53,21 +53,21 @@ class MethodCallRun{
   static public function apply(method_call:MethodCall):Stream<TestPhaseSum,TestFailure>{
     return Stream.fromThunkFuture(() -> method_call.call().map(
       eff -> {
-        __.log().debug('${method_call.field.name} called');
+        __.log().debug('${method_call.field_name} called');
         return eff().fold(
           (failure) -> {
-            method_call.object.error_test('EFF',failure,method_call.position());
+            method_call.object.error_test('EFF',failure,method_call.position().defv(null));
             return Noise;
           },
           () -> Noise
         );
     })).flat_map(
       (_:Noise) -> {
-        __.log().trace('after ${method_call.field.name} effects');
+        __.log().trace('after ${method_call.field_name} effects');
         var asserts = method_call.assertions;
         var stream  =  Stream.fromArray(asserts).flat_map(
           (val:Assertion) -> {
-            __.log().trace('before ${method_call.field.name} AssertionRun');
+            __.log().trace('before ${method_call.field_name} AssertionRun');
             return AssertionRun.apply(val,method_call);
           }
         );

@@ -2,13 +2,13 @@ package stx.test;
 
 class TestCaseData{
   public final test_case    : TestCase;
-  public final clazz        : Classdef;
+  public final class_name   : String;
   public final method_calls : Array<MethodCall>;
   
-  public function new(test_case,clazz,method_calls){
-    this.test_case       = test_case;
-    this.clazz        = clazz;
-    this.method_calls = method_calls;
+  public function new(test_case,class_name,method_calls){
+    this.test_case          = test_case;
+    this.class_name         = class_name;
+    this.method_calls       = method_calls;
   }
   public function has_failures(){
     var failed = false;
@@ -31,6 +31,6 @@ class TestCaseData{
     return bool;
   }
   public function toString(){
-    return 'TestCaseData(${clazz.path})';
+    return 'TestCaseData(${class_name})';
   }
 }

@@ -1,60 +1,50 @@
 package stx.test;
 
+import haxe.rtti.Meta;
+
 class TestCaseLift{
   static public function get_tests<T:TestCase>(v:T,timeout:Int){
-    var clazz         = std.Type.getClass(v);
-    //trace(clazz);
-    var rtti          = Rtti.getRtti(clazz);
-    var fields        = rtti.fields;
-    var test_fields   = fields.filter( cf -> cf.name.startsWith('test') );
-    var applications  = test_fields.map_filter(
-      (cf) -> {
-        __.log().trace('${cf.name}: ${cf.type}');
-        return switch(cf.type){
-          case CFunction([],CAbstract('Void',[]))            : 
-            //__.log().debug('${cf.name} ZeroZero');
-            Some(get_test(v,rtti,cf,ZeroZero,timeout));
-          case CFunction([],CAbstract('stx.test.Async',[]))  :
-            //__.log().debug('${cf.name} ZeroOne'); 
-            Some(get_test(v,rtti,cf,ZeroOne,timeout));
-          case CFunction([],CTypedef('stx.Async',[]))  : 
-            //__.log().debug('${cf.name} ZeroOne');
-            Some(get_test(v,rtti,cf,ZeroOne,timeout));
-          case CFunction([{ t : CTypedef('stx.Async',[]) } ],CAbstract('Void',[])) :
-            //__.log().debug('${cf.name} OneZero');
-            Some(get_test(v,rtti,cf,OneZero,timeout));
-          case CFunction([{ t : CAbstract('stx.test.Async',[]) } ],CAbstract('Void',[])) :
-            //__.log().debug('${cf.name} OneZero');
-            Some(get_test(v,rtti,cf,OneZero,timeout));
-          case CFunction(_,_)  :
-            var lines = [
-              'In "${rtti.path}.${cf.name}"": test* functions have a particular shape: "Void -> Async", "Void->Void"',
-              Std.string(cf.type)
-            ];
-            __.log().error(lines.join("\n"));
-            throw lines.join("\n");
-            None;
-          default : None;
-        };
+    final clazz             = std.Type.getClass(v);
+    trace(clazz);
+    final class_name        = std.Type.getClassName(clazz);
+    trace(class_name);
+    final type_meta         = Meta.getType(clazz);
+    final type_is_async     = Reflect.hasField(type_meta,"stx.test.async");
+
+    final fields            = std.Type.getInstanceFields(clazz);
+    final fields_meta       = Meta.getFields(clazz);
+
+    __.log().debug(_ -> _.pure(fields));
+    
+    var test_fields         = fields.filter( cf -> cf.startsWith('test') );
+    var applications        = test_fields.map_filter(
+      (field_name) -> {
+        final field_meta      = __.option(Reflect.field(fields_meta,field_name));
+        final field_is_async  = field_meta.map( (o:Dynamic) -> Reflect.hasField(o,'stx.test.async')).defv(false);
+        return if(type_is_async || field_is_async ){
+          Some(get_test(v,class_name,field_name,OneZero,timeout));
+        }else{
+          Some(get_test(v,class_name,field_name,ZeroZero,timeout));
+        }
       }
     );
-    var names                = applications.map(f -> f.field.name);
+    var names                = applications.map(f -> f.field_name);
     function name_exists(name){return names.any((n) -> n == name );}
     function depends_on(l:MethodCall,r:MethodCall){
       return l.depends().any(
         (name) -> {
           //trace('${r.test} == $name');
-          return r.field.name == name;
+          return r.field_name == name;
         } 
       );
     }
     var ordered_applications = applications.copy().map(
       (application) -> {
         function get_depends(application:MethodCall,?stack:Array<String>):Array<String>{
-          //trace(application.field.name);
+          //trace(application.field_name);
           stack = __.option(stack).defv([]);
           var dependencies : Array<Couple<String,MethodCall>> = application.depends().map(
-            string -> __.couple(string,applications.search((application) -> application.field.name == string))
+            string -> __.couple(string,applications.search((application) -> application.field_name == string))
           ).map(
             __.decouple(
               (string,option:Option<MethodCall>) -> {
@@ -79,9 +69,9 @@ class TestCaseLift{
         //trace(dependencies);
         var depends = dependencies.map(
           (s) -> applications.search(
-            (application) -> application.field.name == s
+            (application) -> application.field_name == s
           ).def(
-            () -> { throw 'no method named `$s` available on ${application.field.name}}'; null; } 
+            () -> { throw 'no method named `$s` available on ${application.field_name}}'; null; } 
           )
         );
         return [application].concat(depends);
@@ -92,7 +82,7 @@ class TestCaseLift{
         (x:MethodCall) -> {
           return r.any(
             (y:MethodCall) -> {
-              return x.field.name == y.field.name; 
+              return x.field_name == y.field_name; 
             }
           );
         }
@@ -116,19 +106,14 @@ class TestCaseLift{
     //trace(reworked_applications);
     var reordered_applications = ordered_applications.map_filter( _ -> _.head());
 
-    return new TestCaseData(v.asTestCase(),rtti,reordered_applications);
+    return new TestCaseData(v.asTestCase(),class_name,reordered_applications);
   }
-  static public function get_pos(def:Classdef,cf:ClassField):Pos{
-    return Position.make(def.file,def.path,cf.name,cf.line);
-  }
-  static public function get_test(test_case:TestCase,def:Classdef,classfield:ClassField,size,timeout){
-    var name      = classfield.name;
+  static public function get_test(test_case:TestCase,class_name:String,field_name:String,size,timeout){
     var type_name = std.Type.getClassName(std.Type.getClass(test_case));
-    var call      = make_call(test_case,name,def,classfield,size);
-    var file      = def.file;
-    return new MethodCall(test_case,def,classfield,call,timeout);
+    var call      = make_call(test_case,field_name,size);
+    return new MethodCall(test_case,class_name,field_name,call,timeout);
   }
-  static private function make_call(test_case:TestCase,field_name:String,def:Classdef,cf:ClassField,len:FnType):TestMethodZero{
+  static private function make_call(test_case:TestCase,field_name:String,len:FnType):TestMethodZero{
     var call_zero_zero = ()  -> {
       Reflect.callMethod(test_case,Reflect.field(test_case,field_name),[]);
     }
@@ -139,7 +124,7 @@ class TestCaseLift{
       return () -> try{
         fn();
       }catch(e:haxe.Exception){
-        test_case.raise(e,get_pos(def,cf));
+        test_case.raise(e);
         return None;
       }
     }

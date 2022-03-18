@@ -77,9 +77,9 @@ class Reporter extends Clazz{
       final l2                    = indenter(l1);
       final l3                    = indenter(l2);
       final method_call_string_fn = 
-        (test:MethodCall)           -> '<blue>${test.clazz.path}::${test.field.name}</blue>';
+        (test:MethodCall)           -> '<blue>${test.class_name}::${test.field_name}</blue>';
       final test_case_string_fn   = 
-        (test_case:TestCaseData)    -> '<light_white>${test_case.clazz.path}</light_white>';
+        (test_case:TestCaseData)    -> '<light_white>${test_case.class_name}</light_white>';
   
       switch(data){
         case TP_Null                              : 
@@ -113,11 +113,11 @@ class Reporter extends Clazz{
           for(test_case_data in test_suite.test_cases){
             __.log().debug(test_case_data.has_assertions());
             if(!test_case_data.has_assertions()){
-              print_status(yellow_question_on_black,'<yellow>${test_case_data.clazz.path}</yellow>');
+              print_status(yellow_question_on_black,'<yellow>${test_case_data.class_name}</yellow>');
             }else if(!test_case_data.has_failures()){
-              print_status(green_tick_on_black,'<green>${test_case_data.clazz.path}</green>');
+              print_status(green_tick_on_black,'<green>${test_case_data.class_name}</green>');
             }else{
-              print_status(red_cross_on_black,'<red>${test_case_data.clazz.path}</red>');
+              print_status(red_cross_on_black,'<red>${test_case_data.class_name}</red>');
             }
             for(method_call in test_case_data.method_calls){
               var status = method_call.has_assertions().if_else(
@@ -127,7 +127,7 @@ class Reporter extends Clazz{
                 ),
                 () -> yellow_question_on_black
               );
-              print_status(status,'<blue>${method_call.field.name}</blue>');
+              print_status(status,'<blue>${method_call.field_name}</blue>');
               for(assertion in method_call.assertions){
                 final predicate = 
                   #if (sys || hxnodejs)
