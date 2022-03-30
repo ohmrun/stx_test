@@ -5,9 +5,9 @@ import haxe.rtti.Meta;
 class TestCaseLift{
   static public function get_tests<T:TestCase>(v:T,timeout:Int){
     final clazz             = std.Type.getClass(v);
-    trace(clazz);
+    //trace(clazz);
     final class_name        = std.Type.getClassName(clazz);
-    trace(class_name);
+    //trace(class_name);
     final type_meta         = Meta.getType(clazz);
     final type_is_async     = Reflect.hasField(type_meta,"stx.test.async");
 

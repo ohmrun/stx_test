@@ -4,10 +4,12 @@ package stx.test;
   using stx.Sys;
 #end
 class Reporter extends Clazz{ 
-  var stream : Stream<TestPhaseSum,TestFailure>;
+  var stream    : Stream<TestPhaseSum,TestFailure>;
+  var printing  : stx.test.reporter.ReportingApi;
   public function new(stream){
     super();
-    this.stream = stream;
+    this.stream   = stream;
+    this.printing = #if macro new stx.test.reporter.MacroReporting() #else new stx.test.reporter.RuntimeReporting() #end; 
   }
   private function close(err:Rejection<Dynamic>):Void{
     if(err != null){
@@ -29,41 +31,8 @@ class Reporter extends Clazz{
   function indenter(indent){
     return '$indent\t';
   }
-  public var green_tick(get,null):String;
-  private function get_green_tick():String{
-    return '<green>✓</green>';
-  }
-  public var green_tick_on_black(get,null):String;
-  private function get_green_tick_on_black():String{
-    return '<bg_black>$green_tick</bg_black>';
-  }
-  public var red_cross(get,null):String;
-  private function get_red_cross():String{
-    return '<red>✗</red>';
-  }
-  public var red_cross_on_black(get,null):String;
-  private function get_red_cross_on_black():String{
-    return '<bg_black>$red_cross</bg_black>';
-  }
-  public var yellow_question_on_black(get,null):String;
-  private function get_yellow_question_on_black():String{
-    return '<bg_black><yellow>?</yellow></bg_black>';
-  }
-  public var bad(get,null):String;
-  private function get_bad():String{
-    return red_cross_on_black;
-  }
-  public var good(get,null):String;
-  private function get_good():String{
-    return green_tick_on_black;
-  }
-  private inline function println(str:String,indent:String = ""):Void{
-    Console.log('${indent}${str}');
-  }
-  private inline function print_status(icon:String,str:String,indent:String = ""):Void{
-    Console.log('$icon ${indent}${str}');
-  }
   public function enact(){
+    final p = printing;
     // __.log().debug(_ -> _.show(std.Sys.getEnv('TEST')));
     // __.log().debug(_ -> _.show(std.Sys.getEnv('HOME')));
     // __.log().debug(_ -> _.show(std.Sys.getEnv('STX_TEST__VERBOSE')));
@@ -76,58 +45,56 @@ class Reporter extends Clazz{
       final l1                    = indenter(l0);
       final l2                    = indenter(l1);
       final l3                    = indenter(l2);
-      final method_call_string_fn = 
-        (test:MethodCall)           -> '<blue>${test.class_name}::${test.field_name}</blue>';
-      final test_case_string_fn   = 
-        (test_case:TestCaseData)    -> '<light_white>${test_case.class_name}</light_white>';
+      final method_call_string_fn = p.method_call_string;
+      final test_case_string_fn   = p.test_case_string;
   
       switch(data){
         case TP_Null                              : 
-        case TP_Tick(info)                        : println(info);
-        case TP_StartTestCase(test_case_data)     : println(test_case_string_fn(test_case_data),l1);
-        case TP_StartTest(method_call)            : println(method_call_string_fn(method_call),l2);
+        case TP_Tick(info)                        : p.println(info);
+        case TP_StartTestCase(test_case_data)     : p.println(test_case_string_fn(test_case_data),l1);
+        case TP_StartTest(method_call)            : p.println(method_call_string_fn(method_call),l2);
         case TP_ReportFatal(err)                  : 
-          println('<red>${err.toString()}</red>');
-          println('${err.stack}');
+          p.println('<red>${err.toString()}</red>');
+          p.println('${err.stack}');
         case TP_Setup(err)
            | TP_Before(err)
            | TP_After(err) 
            | TP_Teardown(err)                     : 
-          println('<red>${err.toString()}</red>');
+          p.println('<red>${err.toString()}</red>');
         case TP_ReportFailure(assertion,_)        :
           final assertion_string = assertion.outcome().fold(
             s -> s,
             (err:TestFailure) -> __.show(err)
           );
-          print_status(red_cross_on_black,'<red>${assertion_string}</red>',l3); 
+          p.print_status(p.red_cross_on_black,p.fail_string('${assertion_string}'),l3); 
         case TP_ReportTestComplete(method_call)           :
           if(!method_call.has_assertions()){
-            print_status(yellow_question_on_black,'<yellow>no assertions</yellow>',l3);
+            p.print_status(p.yellow_question_on_black,p.warn_string('no assertions'),l3);
           }
         case TP_ReportTestCaseComplete(test_case_data)    :
           if(!test_case_data.has_assertions()){
-            print_status(yellow_question_on_black,'<yellow>no assertions</yellow>',l3);
+            p.print_status(p.yellow_question_on_black,p.warn_string('no assertions'),l3);
           }           
         case TP_ReportTestSuiteComplete(test_suite)       :
-          println("_________________________________________________");
+          p.println("_________________________________________________");
           for(test_case_data in test_suite.test_cases){
             __.log().debug(test_case_data.has_assertions());
             if(!test_case_data.has_assertions()){
-              print_status(yellow_question_on_black,'<yellow>${test_case_data.class_name}</yellow>');
+              p.print_status(p.yellow_question_on_black,p.warn_string('${test_case_data.class_name}'));
             }else if(!test_case_data.has_failures()){
-              print_status(green_tick_on_black,'<green>${test_case_data.class_name}</green>');
+              p.print_status(p.green_tick_on_black,p.ok_string('${test_case_data.class_name}'));
             }else{
-              print_status(red_cross_on_black,'<red>${test_case_data.class_name}</red>');
+              p.print_status(p.red_cross_on_black,p.fail_string('${test_case_data.class_name}'));
             }
             for(method_call in test_case_data.method_calls){
               var status = method_call.has_assertions().if_else(
                 () -> method_call.assertions.has_failures().if_else(
-                  () -> red_cross_on_black,
-                  () -> green_tick_on_black
+                  () -> p.red_cross_on_black,
+                  () -> p.green_tick_on_black
                 ),
-                () -> yellow_question_on_black
+                () -> p.yellow_question_on_black
               );
-              print_status(status,'<blue>${method_call.field_name}</blue>');
+              p.print_status(status,p.info_string('${method_call.field_name}'));
               for(assertion in method_call.assertions){
                 final predicate = 
                   #if (sys || hxnodejs)
@@ -137,16 +104,16 @@ class Reporter extends Clazz{
                   #end
                 if (predicate){
                   assertion.truth.if_else(
-                    () -> print_status(green_tick_on_black,'<green>${assertion}</green>',l1),
+                    () -> p.print_status(p.green_tick_on_black,p.ok_string('${assertion}'),l1),
                     () -> {
-                      print_status(red_cross_on_black,'<red>$assertion</red>',l1);
-                      println('${__.option(assertion.failure).flat_map(x -> __.option(x.stack)).defv(null)}');
+                      p.print_status(p.red_cross_on_black,p.fail_string('$assertion'),l1);
+                      p.println('${__.option(assertion.failure).flat_map(x -> __.option(x.stack)).defv(null)}');
                     } 
                   );
                 }else{
                   assertion.truth.if_else(
                     () -> {},
-                    () -> print_status(red_cross_on_black,'<red>$assertion</red>',l1)
+                    () -> p.print_status(p.red_cross_on_black,p.fail_string('$assertion'),l1)
                   );
                 }
               }

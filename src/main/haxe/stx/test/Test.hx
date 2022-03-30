@@ -37,9 +37,5 @@ class Test {
 			new Reporter(signal).enact();
 		#end
 	}
-	#if stx.boot
-	static public macro function boot(){
-		trace("ok");
-	}
-	#end
+	// `
 }

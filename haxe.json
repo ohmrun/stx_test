@@ -3,7 +3,7 @@
     "-lib"  : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert"],
     "-D"    : [
       "no-deprecation-warnings",
-      "stx.log.filter.show=false"
+      "stx.log.filter.show=true"
     ],
     "-cp"  :  ["src/main/haxe"],
     "unit" : {

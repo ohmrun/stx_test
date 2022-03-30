@@ -1,5 +1,6 @@
 
 using stx.test.Core;
+using stx.test.Logging;
 
 import Printf;
 import haxe.rtti.*;
