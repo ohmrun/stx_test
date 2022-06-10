@@ -7,6 +7,7 @@ import stx.fail.TestFailure;
 
 using stx.Pico;
 using stx.Nano;
+using stx.Fail;
 using stx.Fn;
 using stx.Assert;
 using stx.Log;

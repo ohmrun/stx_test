@@ -1,10 +1,10 @@
 package stx.test;
 
 abstract AsyncResult<T>(Option<T>) from Option<T>{
-  static public function lift<T>(self:Option<T>):AsyncResult<T>{
+  @:noUsing static public function lift<T>(self:Option<T>):AsyncResult<T>{
     return self;
   }
-  static public function pure<T>(v:T):AsyncResult<T>{
+  @:noUsing static public function pure<T>(v:T):AsyncResult<T>{
     return lift(Some(v));
   }
   static public function unit<T>():AsyncResult<T>{

@@ -10,11 +10,11 @@ enum TestFailureSum{
   
   //E_Test_Dynamic(e:Dynamic);
   E_Test_Exception(e:haxe.Exception);
-  E_Test_Rejection(err:Rejection<Dynamic>);
+  E_Test_Refuse(err:Refuse<Dynamic>);
 }
 abstract TestFailure(TestFailureSum) from TestFailureSum to TestFailureSum{
   public function new(self) this = self;
-  static public function lift(self:TestFailureSum):TestFailure return new TestFailure(self);
+  @:noUsing static public function lift(self:TestFailureSum):TestFailure return new TestFailure(self);
 
   public function prj():TestFailureSum return this;
   private var self(get,never):TestFailure;
@@ -23,16 +23,16 @@ abstract TestFailure(TestFailureSum) from TestFailureSum to TestFailureSum{
   public function toString():String{
     return switch(this){
       case E_Test_Exception(e)  : e.toString();
-      case E_Test_Rejection(e)  : e.toString();
+      case E_Test_Refuse(e)  : e.toString();
       default                   : Std.string(this);
     }
   }
-  public var stack(get,never)  : Null<haxe.CallStack>;
+  public var stack(get,never)  : Option<haxe.CallStack>;
   public function get_stack(){
     return switch(this){
-      case E_Test_Exception(e) : e.stack;
-      case E_Test_Rejection(e) : e.stack;
-      default                    : null;
+      case E_Test_Exception(e)   : Some(e.stack);
+      case E_Test_Refuse(e)      : e.stack;
+      default                    : None;
     }
   }
 }

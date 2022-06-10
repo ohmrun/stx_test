@@ -7,7 +7,7 @@ enum TestMethodSum {
 
 abstract TestMethod(TestMethodSum) to TestMethodSum{
   public function  new(self) this = self;
-  static public function lift(self){
+  @:noUsing static public function lift(self){
     return new TestMethod(self);
   }
   static public function fromTestMethodZero(self:TestMethodZero):TestMethod{

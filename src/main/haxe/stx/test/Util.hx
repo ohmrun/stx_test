@@ -6,10 +6,10 @@ class Util{
       __.accept(fn());
     }catch(e:Error<Dynamic>){
       trace(e.stack);
-      __.reject(e.except().errate(E_Test_Rejection));
+      __.reject(e.except().errate(E_Test_Refuse));
     }catch(e:haxe.Exception){
       trace(e.stack);
-      __.reject(Rejection.make(Some(REJECT(E_Test_Exception(e))),None,pos));
+      __.reject(Refuse.make(Some(EXTERIOR(E_Test_Exception(e))),None,pos));
     }
     //return __.accept(fn());
   }

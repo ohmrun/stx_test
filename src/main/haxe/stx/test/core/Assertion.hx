@@ -7,7 +7,7 @@ typedef AssertionDef = {
   var pos           : Pos;
 }
 @:forward abstract Assertion(AssertionDef) from AssertionDef to AssertionDef {
-  static public function make(truth:Bool,explanation:String,?failure:TestFailure,pos:Pos){
+  @:noUsing static public function make(truth:Bool,explanation:String,?failure:TestFailure,pos:Pos){
     return new Assertion({
       truth         : truth,
       explanation   : explanation,

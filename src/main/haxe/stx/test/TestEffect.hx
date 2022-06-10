@@ -8,7 +8,7 @@ package stx.test;
     return () -> {
       return Util.or_res(fn.fn().returning(Noise).prj(),pos).fold(
         ok -> Option.unit(),
-        no -> Option.pure(E_Test_Rejection(no))
+        no -> Option.pure(E_Test_Refuse(no))
       );
     }
   }
@@ -19,12 +19,12 @@ package stx.test;
   }
   @:from static public function fromError<T>(err:Error<T>):TestEffect{
     return () -> {
-      return Option.pure(E_Test_Rejection(err.except()));
+      return Option.pure(E_Test_Refuse(err.except()));
     } 
   }
-  @:from static public function fromRejection<T>(err:Rejection<T>):TestEffect{
+  @:from static public function fromRefuse<T>(err:Refuse<T>):TestEffect{
     return () -> {
-      return Option.pure(E_Test_Rejection(err));
+      return Option.pure(E_Test_Refuse(err));
     } 
   }
 }

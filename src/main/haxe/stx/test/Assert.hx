@@ -23,11 +23,11 @@ class Assert{
   public function fail(reason="force fail",?pos:Pos){
     assert(Assertion.make(false,reason,null,pos));
   }
-  public function rejection(err:Rejection<Dynamic>,?pos:Pos){
-    assert(Assertion.make(false,err.val.toString(),E_Test_Rejection(err),pos));
+  public function refuse(err:Refuse<Dynamic>,?pos:Pos){
+    assert(Assertion.make(false,err.data.toString(),E_Test_Refuse(err),pos));
   }
   public function error(err:Error<Dynamic>,?pos:Pos){
-    assert(Assertion.make(false,err.val.toString(),E_Test_Rejection(err.except()),pos));
+    assert(Assertion.make(false,err.data.toString(),E_Test_Refuse(err.map(EXTERIOR)),pos));
   }
   public function exception(err:haxe.Exception,?pos:Pos){
     assert(Assertion.make(false,err.details(),E_Test_Exception(err),pos));

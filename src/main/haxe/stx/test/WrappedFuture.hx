@@ -9,7 +9,7 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
           () -> {
             __.option(cb(x.thd())).defv(Report.unit()).fold(
               (e) -> {
-                var str = __.show(e.val);
+                var str = __.show(e.data);
                 //__.log().debug('report ${str}');
                 x.snd().error(e,x.fst());
               },
@@ -19,7 +19,7 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
           }
         ).fold(
           (ok)  -> {},
-          (no) -> x.snd().error(__.fault(x.fst()).of(E_Test_Rejection(no)),x.fst())
+          (no) -> x.snd().error(__.fault(x.fst()).of(E_Test_Refuse(no)),x.fst())
         );
         if(async != null){
           async.done();
@@ -27,7 +27,7 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
       }
     );
   }
-  static public function lift<T>(self:Future<Triple<Pos,TestCase,AsyncResult<T>>>):WrappedFuture<T>{
+  @:noUsing static public function lift<T>(self:Future<Triple<Pos,TestCase,AsyncResult<T>>>):WrappedFuture<T>{
     return new WrappedFuture(self); 
   }
   public function prj():Future<Triple<Pos,TestCase,AsyncResult<T>>> return this;

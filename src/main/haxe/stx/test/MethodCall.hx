@@ -27,7 +27,7 @@ class MethodCall{
         async -> async.asFuture().first(Timeout.make(get_timeout())),
         ()    -> TestResult.unit()
       ),
-      no -> TestEffect.fromRejection(no)
+      no -> TestEffect.fromRefuse(no)
     );
   }
   

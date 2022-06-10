@@ -1,6 +1,6 @@
 package stx.test;
 
-#if (sys || hxnodejs)
+#if (sys || nodejs)
   using stx.Sys;
 #end
 class Reporter extends Clazz{ 
@@ -11,12 +11,12 @@ class Reporter extends Clazz{
     this.stream   = stream;
     this.printing = #if macro new stx.test.reporter.MacroReporting() #else new stx.test.reporter.RuntimeReporting() #end; 
   }
-  private function close(err:Rejection<Dynamic>):Void{
+  private function close(err:Refuse<Dynamic>):Void{
     if(err != null){
       __.log().error(err.toString());
     }
     #if stx.test.shutdown.auto
-      #if (sys || hxnodejs)
+      #if (sys || nodejs)
         __.log().debug('shutting down app...');
         if(err == null){
           std.Sys.exit(0);
@@ -97,7 +97,7 @@ class Reporter extends Clazz{
               p.print_status(status,p.info_string('${method_call.field_name}'));
               for(assertion in method_call.assertions){
                 final predicate = 
-                  #if (sys || hxnodejs)
+                  #if (sys || nodejs)
                     __.sys().env('STX_TEST__VERBOSE').is_defined();
                   #else
                     false;
