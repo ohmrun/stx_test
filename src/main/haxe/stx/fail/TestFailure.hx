@@ -1,6 +1,14 @@
 package stx.fail;
 
+import Spil;
+
 enum TestFailureSum{
+  E_Test_AutoRequiresIndecesDecl;
+  E_Test_AutoMalformed(a:Atom);
+  E_Test_AutoClassNotFound(name:String);
+  E_Test_AutoFieldNotFound(name:String);
+  E_Test_ClassNotInIndeces(name:String);
+
   NullTestFailure;
   WhileAsserting(?description:String,failure:TestFailure);
   TestFailedBecause(str:String);
@@ -11,6 +19,7 @@ enum TestFailureSum{
   //E_Test_Dynamic(e:Dynamic);
   E_Test_Exception(e:haxe.Exception);
   E_Test_Refuse(err:Refuse<Dynamic>);
+  E_Test_ReaderFailure(explanation:String,f:Spil.Atom);
 }
 abstract TestFailure(TestFailureSum) from TestFailureSum to TestFailureSum{
   public function new(self) this = self;
@@ -23,7 +32,7 @@ abstract TestFailure(TestFailureSum) from TestFailureSum to TestFailureSum{
   public function toString():String{
     return switch(this){
       case E_Test_Exception(e)  : e.toString();
-      case E_Test_Refuse(e)  : e.toString();
+      case E_Test_Refuse(e)     : e.toString();
       default                   : Std.string(this);
     }
   }

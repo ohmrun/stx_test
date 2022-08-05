@@ -1,5 +1,5 @@
 package stx.test;
 
-class TestResource{
-  
+class TestResource extends TestCase{
+    
 }

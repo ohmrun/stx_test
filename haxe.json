@@ -1,9 +1,10 @@
 {
   "build" : {
-    "-lib"  : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert"],
+    "-resource" : ["tests.pml@tests"],
+    "-lib"  : ["tink_core","hx3compat","stx_pico","stx_nano","stx_fn","stx_assert","fletcher","stx_config","stx_asys","spil"],
     "-D"    : [
       "no-deprecation-warnings",
-      "stx.log.filter.show=true"
+      "stx.log.filter.show=false"
     ],
     "-cp"  :  ["src/main/haxe"],
     "unit" : {
@@ -30,6 +31,15 @@
       "interp" : {
         "--interp" : true
       }
+    },
+    "test.reader" : {
+      "--macro" : [
+        "include('stx.Test',true)",
+        "include('stx.test',true)"
+      ],
+      "--main"    : "ReaderTest",
+      "--interp"  : true,
+      "-D"        : "stx.config.Resource=tests"
     }
   }
 }

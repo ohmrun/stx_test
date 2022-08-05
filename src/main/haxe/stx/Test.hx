@@ -1,9 +1,5 @@
 package stx;
 
-#if sys
-  using stx.Sys;
-#end
-
 class Test{
   static public function poke(wildcard:Wildcard,arr:Array<Dynamic>){ 
     __.log().debug((x) -> x.thunk(arr.map.bind(__.definition)));
@@ -12,20 +8,8 @@ class Test{
       .defv(__.that().never())
       .check();
   } 
-  static public function test<T:TestCase>(wildcard:Wildcard,tests:Array<T>,poke:Array<Dynamic>){
-    final tests = 
-      #if sys
-        if (__.sys().env("POKE").is_defined()){
-          tests.filter(stx.Test.poke(__,poke));
-        }else{
-          tests;
-        }
-        
-      #else 
-        tests;
-      #end
-      
-    new Reporter(new Runner().apply(tests)).enact();
+  static public function test<T:TestCase>(wildcard:Wildcard){
+    return new stx.test.Module();
   }
   static public function explain<T>(wildcard:Wildcard,val:T,?ctr:T->String):Explain<T>{
     return new Explain(val,ctr);
@@ -53,6 +37,7 @@ typedef Util                  = stx.test.Util;
 typedef WithPos<T>            = stx.test.WithPos<T>;
 typedef WrappedFuture<T>      = stx.test.WrappedFuture<T>;
 typedef TestFailure           = stx.fail.TestFailure;
+typedef TestFailureSum        = stx.fail.TestFailure.TestFailureSum;
 typedef TestMethodZeroDef     = Void->Option<Async>;
 typedef TestMethodOneDef      = Async->Void;
 

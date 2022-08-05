@@ -1,0 +1,206 @@
+package stx.test.auto;
+
+import Spil;
+
+class Reader{
+  static public function get(arr:Array<Atom>):Res<SuiteSpecDef,TestFailure>{
+    final indeces = get_indeces(arr.head()).flat_map(
+      (arr:Cluster<String>) -> Res.bind_fold(
+        arr,
+        (n:String,m:Cluster<TestCase>) -> resolve_index(n).map(
+          x -> m.concat(x)
+        ),
+        []
+      )
+    );
+    return indeces.flat_map(
+      indeces -> Res.bind_fold(
+        arr.tail(),
+        (n:Atom,m:Cluster<SpecDef>) -> 
+          get_head(n).map(x -> m.snoc(x))
+        ,[].imm()
+      ).map(
+        spec -> {
+          cases : indeces,
+          specs : spec
+        }
+      )
+    );
+  }
+  static public function get_indeces(atom):Res<Cluster<String>,TestFailure>{
+    //trace(atom);
+    final result = switch(atom){
+      case Some(List(x)) : 
+        switch(x.head()){
+          case Some(Symbol('indeces'))  : 
+            Res.bind_fold(
+              x.tail(),
+              (next:Atom,memo:Cluster<String>) -> {
+                return switch(next){
+                  case Str(ok) : __.accept(memo.snoc(ok));
+                  default      : __.reject(__.fault().of(E_Test_AutoMalformed(next)));
+                }
+              },
+              []
+            );
+          default       : __.reject(__.fault().of(E_Test_AutoRequiresIndecesDecl));
+        }
+      case Some(x)    : __.reject(__.fault().of(E_Test_AutoMalformed(x)));
+      default         : __.reject(__.fault().explain(e -> e.e_undefined()));
+    }
+    return result;
+  }
+  static public function resolve_index(self:String):Res<Cluster<TestCase>,TestFailure>{
+    final clazz = std.Type.resolveClass(self);
+    return (clazz == null).if_else(
+      () -> __.reject(__.fault().of(E_Test_AutoClassNotFound(self))),
+      () -> std.Type.getClassFields(clazz).search(
+        x -> x == 'tests'
+      ).resolve(
+        f -> f.of(E_Test_AutoFieldNotFound('${self}.tests()'))
+      ).adjust(
+        x -> return try{
+          final tests : Cluster<TestCase> = Reflect.field(clazz,'tests')();
+          __.accept(tests);
+        }catch(e:haxe.Exception){
+          __.reject(__.fault().explain(e.explain()));
+        }
+      )
+    );
+  }
+  static public function get_head(x:Atom):Res<SpecDef,TestFailure>{
+    //trace(x);
+    return switch(x){
+      case List(rest
+        ) :
+        final clst = Cluster.lift(rest);
+        final head = clst.head().resolve(f -> f.of(Errors.eI(clst.head().defv(null),'head'))).adjust(
+          x -> switch(x){
+            case Symbol(x)  : __.accept(x);
+            case Str(x)     : __.accept(x);
+            default         : __.reject(__.fault().of(Errors.eI(x,'head')));
+          }
+        );
+        var tail   = clst.tail();
+        head.adjust(
+          name -> switch(tail){
+            case [] : 
+              __.reject(__.fault().of(Errors.eI(null,'no spec op')));
+            default :
+              final op      = tail.head();
+              final result  = op.resolve(f -> f.of(Errors.eI(clst.head().defv(null),'op')))
+              .flat_map(get_op)
+              .flat_map(
+                op -> {
+                  //trace(op);
+                  tail = tail.tail();
+                  //trace(__.show(tail));
+                  //$type(tail);
+                  final classes = Res.bind_fold(
+                    tail,
+                    (n:Atom,m:Cluster<ClassSpecDef>) -> get_spec(n).map(
+                      n -> m.concat(n)
+                    ),
+                    [].imm()
+                  );
+                  //$type(classes);
+                  return classes.map(specs -> ({op : op, name : name, specs : specs}));
+                }
+              );
+              return (result);
+          }
+        );
+      default : __.reject(__.fault().of(Errors.eI(x)));
+    }
+  }
+  static public function get_op(atom:Atom){
+    return switch(atom){
+      case Symbol('include') : __.accept(Include);
+      case Symbol('exclude') : __.accept(Exclude);
+      default                : __.reject(__.fault().of(Errors.eI(atom,'operation')));
+    }
+  }
+  static public function get_spec(atom:Atom):Res<Cluster<ClassSpecDef>,TestFailure>{
+    //trace(__.show(atom));
+    final result = switch(atom){
+      case Symbol(class_name) : __.accept([{ path : ClassPath.make(class_name), op : Include }].imm());
+      case Str(class_name)    : __.accept([{ path : ClassPath.make(class_name), op : Include }].imm());
+      case List(arr)          : 
+        Res.bind_fold(
+          arr.imm(),
+          (next:Atom,memo:Cluster<ClassSpecDef>) -> {
+            return get_class_spec(next).map(x -> memo.snoc(x));
+          },
+          [].imm()
+        );
+      default                 : __.reject(__.fault().of(Errors.eI(atom,"UNIMPLEMENTED")));
+    }
+    //trace(result);
+    //return __.accept([{ path : ClassPath.make("hello"), op : Include, methods : null }]);
+    return result;
+  }
+  static public function get_class_spec(rest:Atom):Res<ClassSpecDef,TestFailure>{
+    //trace(rest);
+    final result = switch(rest){
+      case List(rest)       : (get_class_op_tests(rest));
+      case Symbol(sym)      : __.accept({ path : ClassPath.make(sym), op : Include, methods : null });
+      case Str(sym)         : __.accept({ path : ClassPath.make(sym), op : Include, methods : null });
+      default               : 
+        //trace(rest);
+        __.reject(__.fault().of(Errors.eI(rest,'class_spec')));
+    }
+    return result;
+  }
+  static public function get_class_op_tests(rest:Cluster<Atom>):Res<ClassSpecDef,TestFailure>{
+    //trace(rest);
+    return rest.head().resolve(_ -> _.of(Errors.eI(rest.head().defv(null),'empty cluster')))
+      .flat_map(
+        (atom) -> {
+          return string_like(atom).resolve(_ -> _.of(Errors.eI(atom,'should be identifier')));
+        }
+      ).flat_map(
+        str -> {
+          //trace(str);
+          return           
+          rest
+            .tail()
+            .head()
+            .resolve(_ -> _.of(Errors.eI(rest.tail().head().defv(null),'bad op')))
+            .flat_map(get_op)
+            .map(
+              op -> __.couple(ClassPath.make(str),op)
+            );
+        }
+      ).flat_map(
+        tp -> {
+          //trace(tp);
+          final tests = Res.bind_fold(
+            rest.ldropn(2),
+            (n:Atom,m:Cluster<String>) -> string_like(n)
+              .resolve(_ -> _.of(Errors.eI(n,'should be identifier')))
+              .map(
+                x -> m.snoc(x)
+              ),
+            [].imm()
+          );
+          //trace(tests);
+          //default : __.reject(__.fault().of(Errors.eI(rest.head().defv(null),'needs op')));
+          //trace(rest);
+          return tests.map(
+            clst -> {
+              path  : tp.fst(),
+              op    : tp.snd(),
+              methods : clst 
+            }
+          );
+        }
+      );
+  }
+  static public function string_like(atom:Atom):Option<String>{
+    return switch(atom){
+      case Str(str)     : Some(str);
+      case Symbol(sym)  : Some(sym);
+      default           : None;
+    }
+  }
+}

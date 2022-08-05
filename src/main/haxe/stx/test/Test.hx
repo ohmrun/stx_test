@@ -28,7 +28,7 @@ class Test {
 				[
 					new MacroTestCaseLiftTest(),
 					new DependsTest(),
-					new TestTest(),
+					new stx.test.test.TestTest(),
 					new UseAsyncTest(),
 					new SynchronousErrorTest(),
 					new AsyncResultTest(),
@@ -37,5 +37,15 @@ class Test {
 			new Reporter(signal).enact();
 		#end
 	}
-	// `
+	static public function tests(){
+		return [
+			new MacroTestCaseLiftTest(),
+			new DependsTest(),
+			new TestTest(),
+			new UseAsyncTest(),
+			new SynchronousErrorTest(),
+			new AsyncResultTest(),
+			new TestResource()
+		];
+	}
 }

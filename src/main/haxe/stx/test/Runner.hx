@@ -9,7 +9,10 @@ class Runner{
     var test_cases  : Array<TestCaseData> = cases.map(
       (t:T) -> @:privateAccess t.__stx__tests(timeout) 
     );
-    var sig   = Stream.fromArray(test_cases);
+    return applyI(test_cases);
+  } 
+  public function applyI<T:TestCase>(cases:Cluster<TestCaseData>){
+    var sig   = Stream.fromCluster(cases);
     return sig.flat_map(
       val -> {
         __.log().trace('TestCase:= $val');
@@ -17,14 +20,14 @@ class Runner{
           .seq(TestCaseDataRun.apply(val,timeout))
           .seq(Stream.effect(() -> {__.log().debug("After TestCaseDataRun");}));
       }
-    ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(test_cases))));
-  } 
+    ).seq(Stream.pure(TP_ReportTestSuiteComplete(new TestSuite(cases))));
+  }
 }
 class TestCaseDataRun{
   static public function apply(test_case_data:TestCaseData,timeout):Stream<TestPhaseSum,TestFailure>{
     var setup     = updown(test_case_data.test_case.__setup,timeout,TP_Setup);
     var teardown  = updown(test_case_data.test_case.__teardown,timeout,TP_Teardown);
-    return setup.seq(Stream.fromArray(test_case_data.method_calls).flat_map(
+    return setup.seq(Stream.fromCluster(test_case_data.method_calls).flat_map(
       (method_call) -> {
       __.log().trace('apply: TestCaseDataRun: $test_case_data $method_call');
         var init      = Stream.pure(TP_StartTest(method_call));

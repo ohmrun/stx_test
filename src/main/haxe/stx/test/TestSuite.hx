@@ -1,7 +1,7 @@
 package stx.test;
 
 class TestSuite{
-  public final test_cases  : Array<TestCaseData>;
+  public final test_cases  : Cluster<TestCaseData>;
   public function new(test_cases){
     this.test_cases = test_cases;
   } 

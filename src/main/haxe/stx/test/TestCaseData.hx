@@ -3,7 +3,7 @@ package stx.test;
 class TestCaseData{
   public final test_case    : TestCase;
   public final class_name   : String;
-  public final method_calls : Array<MethodCall>;
+  public final method_calls : Cluster<MethodCall>;
   
   public function new(test_case,class_name,method_calls){
     this.test_case          = test_case;
@@ -32,5 +32,15 @@ class TestCaseData{
   }
   public function toString(){
     return 'TestCaseData(${class_name})';
+  }
+  static public function make(test_case,class_name,method_calls){
+    return new TestCaseData(test_case,class_name,method_calls);
+  }
+  public function copy(?test_case,?class_name,?method_calls){
+    return make(
+      __.option(test_case).defv(this.test_case),
+      __.option(class_name).defv(this.class_name),
+      __.option(method_calls).defv(this.method_calls)
+    );
   }
 }
