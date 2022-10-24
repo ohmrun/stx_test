@@ -1,7 +1,7 @@
 {
   "build" : {
     "-resource" : ["tests.pml@tests"],
-    "-lib"  : ["tink_core","stx_pico","stx_nano","stx_fn","stx_assert","fletcher","stx_config","stx_asys","spil","stx_show","equals"],
+    "-lib"  : ["tink_core","stx_pico","stx_nano","stx_fn","stx_assert","fletcher","stx_config","stx_asys","pml","stx_show","equals"],
     "-D"    : [
       "no-deprecation-warnings",
       "stx.log.filter.show=false"

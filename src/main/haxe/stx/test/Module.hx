@@ -10,7 +10,6 @@ import stx.test.auto.Op;
 class Module extends Clazz{
   public function auto(?timeout):Void{
     (try{
-      final val = Spil.parse(__.resource('tests').string());
       final env = std.Sys.getEnv('STX_TEST__SUITE');
       __.log().info('"$env"');
 

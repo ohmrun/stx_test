@@ -11,7 +11,7 @@ import stx.test.auto.Op;
 
 import eu.ohmrun.pml.Extract.*;
 
-enum AutoSpecToken{
+private enum AutoSpecToken{
   AIndeces(array:Cluster<String>);
   AClassSpec(typename:String,?op:Op,?tests:Cluster<String>);
   ASuiteSpec(name:String,op:Op,classes:Cluster<AutoSpecToken>);

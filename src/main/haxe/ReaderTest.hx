@@ -6,7 +6,6 @@ using stx.Nano;
 using stx.Show;
 using stx.Log;
 using stx.Config;
-import Spil;
 
 import stx.testtest.Tests;
 import stx.test.Test;

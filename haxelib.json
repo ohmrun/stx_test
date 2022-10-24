@@ -29,7 +29,7 @@
 
         "stx_config"        : "git:https://github.com/ohmrun/stx_config.git",
 
-        "spil"              : "git:https://github.com/0b1kn00b/spil.git"
+        "pml"               : "git:https://github.com/ohmrun/pml.git"
     },
     "classPath": "src/main/haxe"
 }

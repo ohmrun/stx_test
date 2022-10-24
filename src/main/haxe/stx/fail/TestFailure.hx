@@ -11,7 +11,7 @@ enum TestFailureSum{
   E_Test_NoIndeces;
   E_Test_BadSpec;
   E_Test_ParseFailure(f:stx.fail.ParseFailure);
-  
+
   NullTestFailure;
   WhileAsserting(?description:String,failure:TestFailure);
   TestFailedBecause(str:String);
@@ -22,7 +22,6 @@ enum TestFailureSum{
   //E_Test_Dynamic(e:Dynamic);
   E_Test_Exception(e:haxe.Exception);
   E_Test_Refuse(err:Refuse<Dynamic>);
-  E_Test_ReaderFailure(explanation:String,f:Spil.Atom);
 }
 abstract TestFailure(TestFailureSum) from TestFailureSum to TestFailureSum{
   public function new(self) this = self;
