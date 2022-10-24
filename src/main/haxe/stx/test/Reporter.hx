@@ -1,7 +1,7 @@
 package stx.test;
 
 #if (sys || nodejs)
-  using stx.Sys;
+  using stx.System;
 #end
 class Reporter extends Clazz{ 
   var stream    : Stream<TestPhaseSum,TestFailure>;

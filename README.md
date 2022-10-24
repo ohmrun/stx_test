@@ -1,9 +1,27 @@
-# Haxe project
+# stx_test
 
-This is an example Haxe project scaffolded by Visual Studio Code.
+To write a test file;
 
-Without further changes the structure is following:
+```haxe
+  using stx.Test;
+  class SomeTest extends TestCase{
+    public function test(){
+      //....
+    }
+  }
+```
+The convention is to create an index file;
 
- * `src/Main.hx`: Entry point Haxe source file
- * `build.hxml`: Haxe command line file used to build the project
- * `README.md`: This file
+```haxe
+  class Tests{
+    static public function tests(){
+      return [new SomeTest()];
+    }
+  }
+```
+
+Create a file `tests.pml`
+
+```kl
+  (indeces Tests)
+```

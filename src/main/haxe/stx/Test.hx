@@ -7,7 +7,7 @@ class Test{
       .lfold1(__.that().or)
       .defv(__.that().never())
       .check();
-  } 
+  }
   static public function test<T:TestCase>(wildcard:Wildcard){
     return new stx.test.Module();
   }

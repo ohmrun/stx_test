@@ -9,6 +9,10 @@ class Assert{
   public function assert(assertion){
     __assertions.push(assertion);
   }
+  public function eq<T>(self:T,that:T,eq:Eq<T>,?reason:String,?pos:Pos){
+    reason = reasoning(() -> __.explain(self).should().be_equal_to(that),reason);
+    assert(Assertion.make(eq.comply(self,that).is_equal(), reason,TestFailedBecause(reason), pos));
+  }
   public function equals<T>(self:T,that:T,?reason:String,?pos:Pos){
     reason = reasoning(() -> __.explain(self).should().be_equal_to(that),reason);
     assert(Assertion.make(self == that, reason,TestFailedBecause(reason), pos));
@@ -74,7 +78,7 @@ class Assert{
     var e0 : EnumValue = oI;
     var e1 : EnumValue = oII;
     reason  = reasoning(() -> __.explain(e0).should().be_like(e1),reason);
-    var truth = e0.index() == e1.index() && e0.ctr() == e1.ctr();
+    var truth = e0.index == e1.index && e0.ctr() == e1.ctr();
     assert(Assertion.make(truth,reason,pos));
   }
   public function accepted(o:Dynamic,?reason:String,?pos:Pos){

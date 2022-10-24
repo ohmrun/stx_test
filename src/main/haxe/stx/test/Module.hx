@@ -4,17 +4,17 @@ import stx.test.auto.*;
 import stx.test.auto.Op;
 
 #if sys
-  using stx.Sys;
+  using stx.System;
 #end
 
 class Module extends Clazz{
-  public function auto():Void{
+  public function auto(?timeout):Void{
     (try{
       final val = Spil.parse(__.resource('tests').string());
       final env = std.Sys.getEnv('STX_TEST__SUITE');
       __.log().info('"$env"');
 
-      final spec = stx.test.auto.Reader.get(val).map(
+      final spec = stx.test.module.Auto.reply().map(
         o -> __.couple(
           o,
           o.specs.search(o -> o.name == env)
@@ -37,7 +37,7 @@ class Module extends Clazz{
                 final test_case_name = Type.getClassName(Type.getClass(n));
                 final spec_ref = spec.specs.search(
                   (class_spec) -> {
-                    __.log().trace('${class_spec.path.prj()} ${test_case_name}');
+                    __.log().debug('${class_spec.path.prj()} ${test_case_name}');
                     return class_spec.path.prj() == test_case_name;
                   }
                 );
@@ -46,10 +46,10 @@ class Module extends Clazz{
                   case Include : spec_ref.fold(
                     (x:ClassSpecDef) -> {
                       __.log().debug('$x');
-                      final data         = TestCaseLift.get_tests(n,2000);
+                      final data         = TestCaseLift.get_tests(n,timeout);
                       final method_calls = data.method_calls;
                       return __.option(x.methods).fold(
-                        methods -> {
+                         methods -> {
                           final next         = Res.bind_fold(
                             method_calls,
                             (n:MethodCall,m:Cluster<MethodCall>) -> {
@@ -76,7 +76,7 @@ class Module extends Clazz{
                   case Exclude : spec_ref.fold(
                     (_) -> __.accept(m),
                     ()  -> {
-                      final data = TestCaseLift.get_tests(n,2000);
+                      final data = TestCaseLift.get_tests(n,timeout);
                       return __.accept(m.snoc(data));
                     } 
                   );
@@ -96,6 +96,7 @@ class Module extends Clazz{
       ));
     }catch(e:haxe.Exception){
       __.log().fatal(e.details());
+      throw e;
     });
   }
   public function run<T:TestCase>(tests:Array<T>,poke:Array<Dynamic>){

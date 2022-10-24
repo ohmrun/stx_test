@@ -14,7 +14,6 @@
     "url": "https://github.com/ohmrun/stx_test",
     "dependencies": {
         "tink_core"         : "git:https://github.com/haxetink/tink_core.git",
-        "hx3compat"         : "git:https://github.com/HaxeFoundation/hx3compat.git",
 
         "console.hx"        : "git:https://github.com/haxiomic/console.hx.git",
         "equals"            : "git: https://github.com/elnabo/equals.git",
@@ -27,6 +26,8 @@
         "stx_log"           : "git:https://github.com/ohmrun/stx_log.git",
         "stx_show"          : "git:https://github.com/ohmrun/stx_show.git",
         "stx_stream"        : "git:https://github.com/ohmrun/stx_stream.git",
+
+        "stx_config"        : "git:https://github.com/ohmrun/stx_config.git",
 
         "spil"              : "git:https://github.com/0b1kn00b/spil.git"
     },
