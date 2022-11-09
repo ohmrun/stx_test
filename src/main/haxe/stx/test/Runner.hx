@@ -48,26 +48,33 @@ class TestCaseDataRun{
       (async) -> async.asFuture().first(Timeout.make(timeout)),
       ()      -> TestResult.unit()
     ).map((x) -> x())
-     .map(opt -> opt.fold(cons,()->TP_Null)));
-
+     .map(
+        arr -> arr.is_defined().if_else(
+          () -> TP_Failures(arr),
+          () -> TP_Null
+        )
+      )
+    );
   }
 }
 class MethodCallRun{
   static public function apply(method_call:MethodCall):Stream<TestPhaseSum,TestFailure>{
     return Stream.fromThunkFuture(() -> method_call.call().map(
       eff -> {
-        __.log().debug('${method_call.field_name} called');
-        return eff().fold(
-          (failure) -> {
+        __.log().debug('TEST: ${method_call.field_name} called');
+        final failures = eff();
+        if(failures.is_defined()){
+          __.log().debug('$failures');
+          for(failure in failures){
             method_call.object.error_test('EFF',failure,method_call.position().defv(null));
-            return Noise;
-          },
-          () -> Noise
-        );
+          }
+        }
+        return Noise;
     })).flat_map(
       (_:Noise) -> {
         __.log().trace('after ${method_call.field_name} effects');
         var asserts = method_call.assertions;
+        __.log().trace('assertions: $asserts');
         var stream  =  Stream.fromArray(asserts).flat_map(
           (val:Assertion) -> {
             __.log().trace('before ${method_call.field_name} AssertionRun');

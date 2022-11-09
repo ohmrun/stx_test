@@ -14,7 +14,8 @@ enum TestPhaseSum{
   TP_Before(f:TestFailure);
   TP_After(f:TestFailure);
   TP_Teardown(f:TestFailure);
-  
+  TP_Failures(xs:Cluster<TestFailure>);
+   
   TP_ReportFailure(assertion:Assertion,method_call:MethodCall);
   TP_ReportTestComplete(method_call:MethodCall);
   TP_ReportTestCaseComplete(test_case_data:TestCaseData);

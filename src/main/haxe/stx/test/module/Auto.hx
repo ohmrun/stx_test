@@ -99,6 +99,16 @@ class Auto{
         x -> ASuiteSpec(x.fst().fst(),x.fst().snd(),x.snd())
       )
       ,'suite_spec'
+    ).or(
+      imbibe(
+        wordish()
+        .and(op())
+        .and(wordish().then(x -> AClassSpec(x)).one_many())
+        .then(
+          x -> ASuiteSpec(x.fst().fst(),x.fst().snd(),x.snd())
+        ),
+        'suite_spec'
+      )
     );
   }
   static public function class_spec_list(){
@@ -132,6 +142,7 @@ class Auto{
           final tests : Cluster<TestCase> = Reflect.field(clazz,'tests')();
           __.accept(tests);
         }catch(e:haxe.Exception){
+          __.log().debug('$e');
           __.reject(__.fault().explain(e.explain()));
         }
       )

@@ -7,34 +7,53 @@ class MethodCall{
     this.field_name         = field_name;
     this._call              = _call;
     this.timeout            = timeout;
+    this.assertions_range   = None;
   }
   public final object           : TestCase;
   public final class_name       : String;
   public final field_name       : String;
   public final _call            : TestMethodZero;
   public final timeout          : Int;
-
+  public var assertions_range   : Option<Couple<Int,Int>>;
   public var timestamp          : Float;
   
   public function call():TestResult{
     __.log().blank('call: timeout : ${get_timeout()}');
     __.assert().exists(_call);
-    this.timestamp = haxe.Timer.stamp();
-    //final pos = Position.make(clazz.file,clazz.path,field_name,field.line,[]);
-    var res   = Util.or_res(_call.prj());
-    return res.fold(
+    this.timestamp                  = haxe.Timer.stamp();
+    final all_assertions            = @:privateAccess object.__assertions;
+    final before_assertions_length  = all_assertions.length;
+
+    var res                         = Util.or_res(_call.prj());
+    final after_assertions_length   = all_assertions.length;
+    
+    var result = res.fold(
       (ok:Option<Async>) -> ok.fold(
         async -> async.asFuture().first(Timeout.make(get_timeout())),
         ()    -> TestResult.unit()
       ),
       no -> TestEffect.fromRefuse(no)
     );
+    if(after_assertions_length > before_assertions_length){
+      this.assertions_range = Some(__.couple(before_assertions_length,after_assertions_length));
+    }
+    return result;
   }
   
   public var assertions(get,null):Assertions;
   private function get_assertions():Assertions{
-    return @:privateAccess this.object.__assertions.filter(
-      (x) -> (x.pos:Position).methodName == this.field_name
+    return assertions_range.fold(
+      __.decouple(
+        (l,r) -> {
+          final all_assertions    = @:privateAccess object.__assertions;
+          final these_assertions  = [];
+          for( i in l ... r){
+            these_assertions.push(all_assertions[i]);
+          }
+          return these_assertions;
+        }
+      ),
+      () -> []
     );
   }
   public function position():Option<Position>{
@@ -86,7 +105,7 @@ class MethodCall{
   }
   public function has_assertions(){
     //trace(assertions.is_defined());
-    return assertions.is_defined();
+    return this.assertions_range.is_defined();
   }
   public function toString(){
     var location = this.class_name + this.field_name;

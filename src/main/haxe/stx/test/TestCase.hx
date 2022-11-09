@@ -29,10 +29,12 @@ package stx.test;
             }
           );
         }catch(e:Error<Dyn>){
+          __.log().debug('$e');
           this.error(e,pos);
           cb(__.triple(pos,this,AsyncResult.unit()));
           null;
         }catch(e:haxe.Exception){
+          __.log().debug('$e');
           this.exception(e,pos);
           cb(__.triple(pos,this,AsyncResult.unit())); 
           null;

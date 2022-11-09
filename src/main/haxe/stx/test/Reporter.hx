@@ -53,6 +53,10 @@ class Reporter extends Clazz{
         case TP_Tick(info)                        : p.println(info);
         case TP_StartTestCase(test_case_data)     : p.println(test_case_string_fn(test_case_data),l1);
         case TP_StartTest(method_call)            : p.println(method_call_string_fn(method_call),l2);
+        case TP_Failures(xs)                      :
+          for(x in xs){
+            p.println('<red>${x.toString()}</red>');
+          }
         case TP_ReportFatal(err)                  : 
           p.println('<red>${err.toString()}</red>');
           p.println('${err.stack}');

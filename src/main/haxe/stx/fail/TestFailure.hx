@@ -1,17 +1,16 @@
 package stx.fail;
 
-import Spil;
-
 enum TestFailureSum{
   E_Test_AutoRequiresIndecesDecl;
-  E_Test_AutoMalformed(a:Atom);
+  E_Test_AutoMalformed(v:eu.ohmrun.pml.PExpr<eu.ohmrun.pml.Atom>);
   E_Test_AutoClassNotFound(name:String);
   E_Test_AutoFieldNotFound(name:String);
   E_Test_ClassNotInIndeces(name:String);
   E_Test_NoIndeces;
   E_Test_BadSpec;
   E_Test_ParseFailure(f:stx.fail.ParseFailure);
-
+  E_Test_Assertion(assertion:stx.test.core.Assertion);
+  
   NullTestFailure;
   WhileAsserting(?description:String,failure:TestFailure);
   TestFailedBecause(str:String);

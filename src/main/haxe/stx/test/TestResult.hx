@@ -1,6 +1,9 @@
 package stx.test;
  
 @:forward abstract TestResult(Future<TestEffect>) from Future<TestEffect> to Future<TestEffect>{
+  @:noUsing static public function lift(self:Future<TestEffect>){
+    return (self:TestResult);
+  }
   @:from static inline public function pure(self:TestEffect):TestResult{
     return Future.irreversible(
       (cb) -> {
@@ -28,5 +31,11 @@ package stx.test;
   // }
   static public function fromError<E>(err:Error<E>){
     return pure(TestEffect.fromError(err));
+  }
+  public function concat(that:TestResult){
+    return __.nano().Ft().zip(this,that.prj()).map(__.decouple((l:TestEffect,r:TestEffect) -> l.concat(r)));
+  }
+  public function prj(){
+    return this;
   }
 } 

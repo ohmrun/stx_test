@@ -124,6 +124,7 @@ class TestCaseLift{
       return () -> try{
         fn();
       }catch(e:haxe.Exception){
+        __.log().debug('$e');
         test_case.raise(e);
         return None;
       }

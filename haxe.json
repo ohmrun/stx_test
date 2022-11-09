@@ -10,7 +10,7 @@
     "unit" : {
       "--macro" : [
         "include('stx.Test',true)",
-        "include('stx.test',true)"
+        "include('stx.test',true)" 
       ],
       "interp" : {
         "--interp" : true
