@@ -14,24 +14,23 @@ class Test {
 			boot();
 		#else
 			var logger : stx.log.logger.Unit = __.log().global;
-			#if (sys)
-					logger = new stx.log.logger.ConsoleLogger();
-				stx.log.Signal.instance.attach(logger);
-			#end
+			
 			logger.includes.push("**/*");
+			logger.includes.push("stx/test");
 			//logger.includes.push("stx/stream");
 			logger.level = TRACE;
 
 			__.log().info('main');
 
+			trace('main');
 			var signal = new Runner().apply(
 				[
-					new MacroTestCaseLiftTest(),
-					new DependsTest(),
-					new stx.test.test.TestTest(),
+					//new MacroTestCaseLiftTest(),
+					//new DependsTest(),
+					//new stx.test.test.TestTest(),
 					new UseAsyncTest(),
-					new SynchronousErrorTest(),
-					new AsyncResultTest(),
+					//new SynchronousErrorTest(),
+					//new AsyncResultTest(),
 				]
 			);
 			new Reporter(signal).enact();

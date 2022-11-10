@@ -36,9 +36,11 @@ class Reporter extends Clazz{
     // __.log().debug(_ -> _.show(std.Sys.getEnv('TEST')));
     // __.log().debug(_ -> _.show(std.Sys.getEnv('HOME')));
     // __.log().debug(_ -> _.show(std.Sys.getEnv('STX_TEST__VERBOSE')));
-    //final is_verbose = __.sys().env('STX_TEST__VERBOSE').is_defined();
-    //__.log().info('STX_TEST__VERBOSE = $is_verbose');
-  
+    #if (sys || nodejs)
+      final is_verbose = __.sys().env('STX_TEST__VERBOS E').is_defined();
+      __.log().info('STX_TEST__VERBOSE = $is_verbose');
+    #end
+
     var closed = false;
     function serve(data:TestPhaseSum){
       final l0                    = indenter('');
@@ -111,7 +113,11 @@ class Reporter extends Clazz{
                     () -> p.print_status(p.green_tick_on_black,p.ok_string('${assertion}'),l1),
                     () -> {
                       p.print_status(p.red_cross_on_black,p.fail_string('$assertion'),l1);
-                      p.println('${__.option(assertion.failure).flat_map(x -> __.option(x.stack)).defv(null)}');
+                      for(stack in __.option(assertion.failure).flat_map(x -> __.option(x.stack))){
+                        for(item in stack){
+                          p.println(p.fail_string('$item'));
+                        }
+                      }
                     } 
                   );
                 }else{

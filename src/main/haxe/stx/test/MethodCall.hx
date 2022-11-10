@@ -7,54 +7,52 @@ class MethodCall{
     this.field_name         = field_name;
     this._call              = _call;
     this.timeout            = timeout;
-    this.assertions_range   = None;
+    this.assertions         = [];
   }
   public final object           : TestCase;
   public final class_name       : String;
   public final field_name       : String;
   public final _call            : TestMethodZero;
   public final timeout          : Int;
-  public var assertions_range   : Option<Couple<Int,Int>>;
   public var timestamp          : Float;
   
+  //TODO: async assertions?
   public function call():TestResult{
     __.log().blank('call: timeout : ${get_timeout()}');
     __.assert().exists(_call);
     this.timestamp                  = haxe.Timer.stamp();
+    /**
+      Figuring out which assertions a test has made to avoid PosInfos
+    **/
+    ///////////////////////////////////////////////////////////////////////////////////////////
     final all_assertions            = @:privateAccess object.__assertions;
     final before_assertions_length  = all_assertions.length;
 
     var res                         = Util.or_res(_call.prj());
-    final after_assertions_length   = all_assertions.length;
     
-    var result = res.fold(
+    trace(res);
+    var result = TestResult.lift(res.fold(
       (ok:Option<Async>) -> ok.fold(
         async -> async.asFuture().first(Timeout.make(get_timeout())),
         ()    -> TestResult.unit()
       ),
       no -> TestEffect.fromRefuse(no)
+    )).tap(
+      (x) -> {
+        final after_assertions_length   = all_assertions.length;
+        for(i in before_assertions_length ... after_assertions_length){
+          this.assertions.push(all_assertions[i]);
+        }
+      }
     );
-    if(after_assertions_length > before_assertions_length){
-      this.assertions_range = Some(__.couple(before_assertions_length,after_assertions_length));
-    }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
     return result;
   }
   
-  public var assertions(get,null):Assertions;
+  @:isVar public var assertions(get,null):Assertions;
   private function get_assertions():Assertions{
-    return assertions_range.fold(
-      __.decouple(
-        (l,r) -> {
-          final all_assertions    = @:privateAccess object.__assertions;
-          final these_assertions  = [];
-          for( i in l ... r){
-            these_assertions.push(all_assertions[i]);
-          }
-          return these_assertions;
-        }
-      ),
-      () -> []
-    );
+    return assertions;
   }
   public function position():Option<Position>{
     final type = std.Type.getClass(object);
@@ -104,8 +102,7 @@ class MethodCall{
       ); 
   }
   public function has_assertions(){
-    //trace(assertions.is_defined());
-    return this.assertions_range.is_defined();
+    return this.assertions.is_defined();
   }
   public function toString(){
     var location = this.class_name + this.field_name;

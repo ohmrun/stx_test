@@ -6,6 +6,7 @@ enum TestFailureSum{
   E_Test_AutoClassNotFound(name:String);
   E_Test_AutoFieldNotFound(name:String);
   E_Test_ClassNotInIndeces(name:String);
+  E_Test_ReaderFailure(e:String,s:Dynamic);
   E_Test_NoIndeces;
   E_Test_BadSpec;
   E_Test_ParseFailure(f:stx.fail.ParseFailure);

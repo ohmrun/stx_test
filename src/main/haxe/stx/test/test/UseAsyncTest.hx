@@ -1,7 +1,8 @@
 package stx.test.test;
 
+@stx.test.async
 class UseAsyncTest extends TestCase{
-  public function test_bring(async:Async){
+  public function _test_bring(async:Async){
     trace("JERJ");
     pass();
     async.done();

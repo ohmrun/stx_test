@@ -35,6 +35,14 @@ package stx.test;
   public function concat(that:TestResult){
     return __.nano().Ft().zip(this,that.prj()).map(__.decouple((l:TestEffect,r:TestEffect) -> l.concat(r)));
   }
+  public function tap(fn:TestEffect->Void){
+    return lift(this.map(
+      x -> {
+        fn(x);
+        return x;
+      }
+    ));
+  }
   public function prj(){
     return this;
   }

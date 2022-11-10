@@ -63,11 +63,8 @@ class MethodCallRun{
       eff -> {
         __.log().debug('TEST: ${method_call.field_name} called');
         final failures = eff();
-        if(failures.is_defined()){
-          __.log().debug('$failures');
-          for(failure in failures){
-            method_call.object.error_test('EFF',failure,method_call.position().defv(null));
-          }
+        for (failure in failures){
+          method_call.assertions.push(Assertion.make(false,'FAIL',failure,method_call.position().defv(null)));
         }
         return Noise;
     })).flat_map(

@@ -1,5 +1,6 @@
 package stx.test.auto;
 
+using eu.ohmrun.Pml;
 class Errors{ 
   static public function e(x:Atom,?section){
     var str ='unsupported form ${__.show(x)}';

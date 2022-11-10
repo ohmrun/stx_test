@@ -7,7 +7,6 @@ class Assert{
     __assertions = [];
   }
   public function assert(assertion:Assertion){
-    trace('push $assertion');
     __assertions.push(assertion);
   }
   public function eq<T>(self:T,that:T,eq:Eq<T>,?reason:String,?pos:Pos){
