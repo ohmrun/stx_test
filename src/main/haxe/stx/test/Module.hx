@@ -86,13 +86,13 @@ class Module extends Clazz{
           }
         )
       );
-      trace(spec.point(
+      __.log().info('${spec.point(
         x -> {
           //trace(x);
           new Reporter(new Runner().applyI(x)).enact();
           return __.report();
         }
-      ));
+      )}');
     }catch(e:haxe.Exception){
       __.log().fatal(e.details());
       throw e;

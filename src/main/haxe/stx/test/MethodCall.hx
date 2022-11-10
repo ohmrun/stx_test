@@ -30,7 +30,7 @@ class MethodCall{
 
     var res                         = Util.or_res(_call.prj());
     
-    trace(res);
+    __.log().trace('$res');
     var result = TestResult.lift(res.fold(
       (ok:Option<Async>) -> ok.fold(
         async -> async.asFuture().first(Timeout.make(get_timeout())),
