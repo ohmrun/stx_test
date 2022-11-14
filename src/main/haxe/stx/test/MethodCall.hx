@@ -96,7 +96,7 @@ class MethodCall{
     final field_meta  = Reflect.field(fields_meta,this.field_name);
     return __.option(Reflect.field(field_meta,"timeout"))
       .map(
-        arr -> Std.parseInt(arr[0])
+        arr -> arr[0]
       ).def(
         () -> this.timeout
       ); 
