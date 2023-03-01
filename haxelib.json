@@ -13,23 +13,23 @@
     "version": "0.1.0",
     "url": "https://github.com/ohmrun/stx_test",
     "dependencies": {
-        "tink_core"         : "git:https://github.com/haxetink/tink_core.git",
+        "tink_core"         : "",
 
-        "console.hx"        : "git:https://github.com/haxiomic/console.hx.git",
-        "equals"            : "git: https://github.com/elnabo/equals.git",
-        "polygonal-printf"  : "git:https://github.com/polygonal/printf.git", 
+        "console.hx"        : "",
+        "equals"            : "",
+        "polygonal-printf"  : "", 
 
-        "stx_pico"          : "git:https://github.com/ohmrun/stx_pico.git",
-        "stx_nano"          : "git:https://github.com/ohmrun/stx_nano.git",
-        "stx_fn"            : "git:https://github.com/ohmrun/stx_fn.git",
-        "stx_assert"        : "git:https://github.com/ohmrun/stx_assert.git",
-        "stx_log"           : "git:https://github.com/ohmrun/stx_log.git",
-        "stx_show"          : "git:https://github.com/ohmrun/stx_show.git",
-        "stx_stream"        : "git:https://github.com/ohmrun/stx_stream.git",
+        "stx_pico"          : "",
+        "stx_nano"          : "",
+        "stx_fn"            : "",
+        "stx_assert"        : "",
+        "stx_log"           : "",
+        "stx_show"          : "",
+        "stx_stream"        : "",
 
-        "stx_config"        : "git:https://github.com/ohmrun/stx_config.git",
+        "stx_config"        : "",
 
-        "pml"               : "git:https://github.com/ohmrun/pml.git"
+        "pml"               : ""
     },
     "classPath": "src/main/haxe"
 }
