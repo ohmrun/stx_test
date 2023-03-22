@@ -46,4 +46,7 @@ abstract TestFailure(TestFailureSum) from TestFailureSum to TestFailureSum{
       default                    : None;
     }
   }
+  @:from static public function fromParseFailure(pf:ParseFailure){
+    return lift(E_Test_ParseFailure(pf));
+  }
 }

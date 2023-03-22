@@ -81,11 +81,11 @@ class Auto{
           o   -> __.accept(o),
           ()  -> __.reject(f -> f.of(E_Test_BadSpec))
         ),
-        e -> __.reject(e)
+        e -> __.reject(e.errate(eI -> TestFailure.fromParseFailure(eI)))
       ),
-      e   -> __.reject(e),
+      e   -> __.reject(e.errate(eI -> TestFailure.fromParseFailure(eI))),
       ()  -> __.reject(f -> f.of(E_Test_BadSpec)) 
-    ).errate(E_Test_ParseFailure).flat_map(x -> x);
+    ).flat_map(x -> x);
   }
   static public function indeces(){
     return imbibe(symbol('indeces')._and(wordish().one_many()).then(AIndeces),'main');

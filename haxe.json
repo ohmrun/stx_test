@@ -17,35 +17,36 @@
       }
     },
     "test" : {
+      "-cp"       : "src/test/haxe",
       "-main"     : "stx.test.Test",
       "interp"  : {
         "--interp"  : true
+      },
+      "meta_gets" : {
+        "-main" : "TestMetaGets",
+        "--interp" : true 
+      },
+      "reader" : {
+        "--macro" : [
+          "include('stx.Test',true)",
+          "include('stx.test',true)"
+        ],
+        "--main"    : "ReaderTest",
+        "--interp"  : true,
+        "-D"        : "stx.config.Resource=tests"
+      },
+      "features" : {
+        "new_test_reader" : {
+          "--interp" : true,
+          "--main"  : "TestNewReader"
+        }
       } 
-    },
-    "test_meta_gets" : {
-      "-main" : "TestMetaGets",
-      "--interp" : true 
     },
     "boot" : {
       "-D" : ["stx.boot"],
       "interp" : {
         "--interp" : true
       }
-    },
-    "test.reader" : {
-      "--macro" : [
-        "include('stx.Test',true)",
-        "include('stx.test',true)"
-      ],
-      "--main"    : "ReaderTest",
-      "--interp"  : true,
-      "-D"        : "stx.config.Resource=tests"
-    },
-    "features" : {
-      "new_test_reader" : {
-        "--interp" : true,
-        "--main"  : "TestNewReader"
-      }
-    } 
+    }
   }
 }

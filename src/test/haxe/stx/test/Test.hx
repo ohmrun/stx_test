@@ -14,11 +14,10 @@ class Test {
 			boot();
 		#else
 			var logger : stx.log.logger.Unit = __.log().global;
-			
-			logger.includes.push("**/*");
-			logger.includes.push("stx/test");
+			//logger.includes.push("**/*");
+			//logger.includes.push("stx/test");
 			//logger.includes.push("stx/stream");
-			logger.level = TRACE;
+			//logger.level = TRACE;
 
 			__.log().info('main');
 
