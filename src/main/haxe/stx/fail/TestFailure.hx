@@ -1,5 +1,7 @@
 package stx.fail;
 
+using stx.Pico;
+
 enum TestFailureSum{
   E_Test_AutoRequiresIndecesDecl;
   E_Test_AutoMalformed(v:eu.ohmrun.pml.PExpr<eu.ohmrun.pml.Atom>);

@@ -1,5 +1,11 @@
 package stx;
 
+using stx.Pico;
+using stx.Nano;
+using stx.Fail;
+using stx.Log;
+using stx.Assert;
+
 class Test{
   static public function poke(wildcard:Wildcard,arr:Array<Dynamic>){ 
     __.log().debug((x) -> x.thunk(arr.map.bind(__.definition)));
