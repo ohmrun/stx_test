@@ -13,7 +13,7 @@ class Test {
 		#if stx.boot
 			boot();
 		#else
-			var logger : stx.log.logger.Unit = __.log().global;
+			//var logger = __.log().global;
 			//logger.includes.push("**/*");
 			//logger.includes.push("stx/test");
 			//logger.includes.push("stx/stream");

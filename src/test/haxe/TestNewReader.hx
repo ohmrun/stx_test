@@ -11,8 +11,8 @@ import stx.test.module.Auto;
 
 class TestNewReader{
   static public function main(){
-    final log     = __.log().global;
-          log.level = INFO;
+    final logger     = __.logger().global();
+          
     final v       = __.resource('tests').string();
     trace(v);
     final vI      = __.pml().parseI()(v.reader()).toChunk();
