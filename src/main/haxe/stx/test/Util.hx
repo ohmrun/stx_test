@@ -1,7 +1,7 @@
 package stx.test;
 
 class Util{
-  static public inline function or_res<U>(fn:Void->U,?pos:Pos):Res<U,TestFailure>{
+  static public inline function or_res<U>(fn:Void->U,?pos:Pos):Upshot<U,TestFailure>{
     return try{
       __.accept(fn());
     }catch(e:Error<Dynamic>){

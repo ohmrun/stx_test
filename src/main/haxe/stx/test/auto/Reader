@@ -3,7 +3,7 @@ package stx.test.auto;
 import Spil;
 
 class Reader{
-  static public function get(arr:Array<Atom>):Res<SuiteSpecDef,TestFailure>{
+  static public function get(arr:Array<Atom>):Upshot<SuiteSpecDef,TestFailure>{
     final indeces = get_indeces(arr.head()).flat_map(
       (arr:Cluster<String>) -> Res.bind_fold(
         arr,
@@ -27,7 +27,7 @@ class Reader{
       )
     );
   }
-  static public function get_indeces(atom):Res<Cluster<String>,TestFailure>{
+  static public function get_indeces(atom):Upshot<Cluster<String>,TestFailure>{
     //trace(atom);
     final result = switch(atom){
       case Some(List(x)) : 
@@ -50,7 +50,7 @@ class Reader{
     }
     return result;
   }
-  static public function resolve_index(self:String):Res<Cluster<TestCase>,TestFailure>{
+  static public function resolve_index(self:String):Upshot<Cluster<TestCase>,TestFailure>{
     final clazz = std.Type.resolveClass(self);
     return (clazz == null).if_else(
       () -> __.reject(__.fault().of(E_Test_AutoClassNotFound(self))),
@@ -68,7 +68,7 @@ class Reader{
       )
     );
   }
-  static public function get_head(x:Atom):Res<SpecDef,TestFailure>{
+  static public function get_head(x:Atom):Upshot<SpecDef,TestFailure>{
     //trace(x);
     return switch(x){
       case List(rest
@@ -120,7 +120,7 @@ class Reader{
       default                : __.reject(__.fault().of(Errors.eI(atom,'operation')));
     }
   }
-  static public function get_spec(atom:Atom):Res<Cluster<ClassSpecDef>,TestFailure>{
+  static public function get_spec(atom:Atom):Upshot<Cluster<ClassSpecDef>,TestFailure>{
     //trace(__.show(atom));
     final result = switch(atom){
       case Symbol(class_name) : __.accept([{ path : ClassPath.make(class_name), op : Include }].imm());
@@ -139,7 +139,7 @@ class Reader{
     //return __.accept([{ path : ClassPath.make("hello"), op : Include, methods : null }]);
     return result;
   }
-  static public function get_class_spec(rest:Atom):Res<ClassSpecDef,TestFailure>{
+  static public function get_class_spec(rest:Atom):Upshot<ClassSpecDef,TestFailure>{
     //trace(rest);
     final result = switch(rest){
       case List(rest)       : (get_class_op_tests(rest));
@@ -151,7 +151,7 @@ class Reader{
     }
     return result;
   }
-  static public function get_class_op_tests(rest:Cluster<Atom>):Res<ClassSpecDef,TestFailure>{
+  static public function get_class_op_tests(rest:Cluster<Atom>):Upshot<ClassSpecDef,TestFailure>{
     //trace(rest);
     return rest.head().resolve(_ -> _.of(Errors.eI(rest.head().defv(null),'empty cluster')))
       .flat_map(

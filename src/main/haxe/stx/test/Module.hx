@@ -30,7 +30,7 @@ class Module extends Clazz{
           (suite:SuiteSpecDef,spec:SpecDef) -> {
             __.log().debug('$suite');
             __.log().debug('$spec');
-            return Res.bind_fold(
+            return Upshot.bind_fold(
               suite.cases,
               (n:TestCase,m:Cluster<TestCaseData>) -> {
                 final test_case_name = Type.getClassName(Type.getClass(n));
@@ -49,7 +49,7 @@ class Module extends Clazz{
                       final method_calls = data.method_calls;
                       return __.option(x.methods).fold(
                          methods -> {
-                          final next         = Res.bind_fold(
+                          final next         = Upshot.bind_fold(
                             method_calls,
                             (n:MethodCall,m:Cluster<MethodCall>) -> {
                               final has_method =  methods.any(

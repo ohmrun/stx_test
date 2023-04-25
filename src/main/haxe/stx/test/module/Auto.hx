@@ -22,11 +22,11 @@ class Auto{
       __.decouple(
         (tI,tII:Cluster<AutoSpecToken>) -> switch(tI){
           case AIndeces(arr) : 
-            Res.bind_fold(
+            Upshot.bind_fold(
               tII,
               (next, memo:Cluster<SpecDef>) -> switch(next){
                 case ASuiteSpec(name,op,classes) : 
-                  Res.bind_fold(
+                  Upshot.bind_fold(
                     classes,
                     (next,memo:Cluster<ClassSpecDef>) -> switch(next){
                       case AClassSpec(tname,op,tests) : __.accept(memo.snoc({
@@ -51,7 +51,7 @@ class Auto{
               []
             ).flat_map(
               (specs:Cluster<SpecDef>) -> {
-                return Res.bind_fold(
+                return Upshot.bind_fold(
                   arr,
                   (next,memo:Cluster<TestCase>) -> {
                     return resolve_index(next).map(
@@ -76,7 +76,7 @@ class Auto{
     final v       = __.resource('tests').string();
     final vI      = __.pml().parseI()(v.reader()).toChunk();
     return vI.fold(
-      x -> return stx.test.module.Auto.main().apply([x].reader()).toRes().fold(
+      x -> return stx.test.module.Auto.main().apply([x].reader()).toUpshot().fold(
         ok -> ok.fold(
           o   -> __.accept(o),
           ()  -> __.reject(f -> f.of(E_Test_BadSpec))
@@ -129,7 +129,7 @@ class Auto{
   static public function  op(){
     return include().or(exclude());
   }
-  static public function resolve_index(self:String):Res<Cluster<TestCase>,TestFailure>{
+  static public function resolve_index(self:String):Upshot<Cluster<TestCase>,TestFailure>{
     final clazz = std.Type.resolveClass(self);
     return (clazz == null).if_else(
       () -> __.reject(__.fault().of(E_Test_AutoClassNotFound(self))),
