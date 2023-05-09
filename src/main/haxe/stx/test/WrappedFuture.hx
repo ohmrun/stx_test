@@ -15,7 +15,7 @@ abstract WrappedFuture<T>(Future<Triple<Pos,TestCase,AsyncResult<T>>>) from Futu
               },
               ()  -> {}
             );
-            return Noise;
+            return Nada;
           }
         ).fold(
           (ok)  -> {},

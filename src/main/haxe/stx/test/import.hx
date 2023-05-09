@@ -1,7 +1,7 @@
 package stx;
 
 import tink.core.Future;
-import tink.core.Noise;
+import stx.pico.Nada;
 
 import stx.fail.TestFailure;
 

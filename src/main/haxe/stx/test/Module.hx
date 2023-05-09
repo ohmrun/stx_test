@@ -3,10 +3,6 @@ package stx.test;
 import stx.test.auto.*;
 import stx.test.auto.Op;
 
-#if sys
-  using stx.System;
-#end
-
 class Module extends Clazz{
   public function auto(?timeout):Void{
     (try{
@@ -101,7 +97,7 @@ class Module extends Clazz{
   public function run<T:TestCase>(tests:Array<T>,poke:Array<Dynamic>){
     final tests =  
       #if sys
-        if (__.sys().env("POKE").is_defined()){
+        if (Sys.env("POKE").is_defined()){
           tests.filter(stx.Test.poke(__,poke));
         }else{
           tests;

@@ -66,9 +66,9 @@ class MethodCallRun{
         for (failure in failures){
           method_call.assertions.push(Assertion.make(false,'FAIL',failure,method_call.position().defv(null)));
         }
-        return Noise;
+        return Nada;
     })).flat_map(
-      (_:Noise) -> {
+      (_:Nada) -> {
         __.log().trace('after ${method_call.field_name} effects');
         var asserts = method_call.assertions;
         __.log().trace('assertions: $asserts');

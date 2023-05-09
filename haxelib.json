@@ -26,9 +26,6 @@
         "stx_log"           : "",
         "stx_show"          : "",
         "stx_stream"        : "",
-
-        "stx_config"        : "",
-
         "pml"               : ""
     },
     "classPath": "src/main/haxe"

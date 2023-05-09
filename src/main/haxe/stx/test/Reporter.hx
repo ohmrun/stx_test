@@ -1,8 +1,5 @@
 package stx.test;
 
-#if (sys || nodejs)
-  using stx.System;
-#end
 class Reporter extends Clazz{ 
   var stream    : Stream<TestPhaseSum,TestFailure>;
   var printing  : stx.test.reporter.ReportingApi;
@@ -37,7 +34,7 @@ class Reporter extends Clazz{
     // __.log().debug(_ -> _.show(std.Sys.getEnv('HOME')));
     // __.log().debug(_ -> _.show(std.Sys.getEnv('STX_TEST__VERBOSE')));
     #if (sys || nodejs)
-      final is_verbose = __.sys().env('STX_TEST__VERBOS E').is_defined();
+      final is_verbose = Sys.env('STX_TEST__VERBOS E').is_defined();
       __.log().info('STX_TEST__VERBOSE = $is_verbose');
     #end
 
@@ -104,7 +101,7 @@ class Reporter extends Clazz{
               for(assertion in method_call.assertions){
                 final predicate = 
                   #if (sys || nodejs)
-                    __.sys().env('STX_TEST__VERBOSE').is_defined();
+                    Sys.env('STX_TEST__VERBOSE').is_defined();
                   #else
                     false;
                   #end

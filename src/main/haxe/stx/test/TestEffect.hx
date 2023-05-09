@@ -12,7 +12,7 @@ package stx.test;
   }
   static public function fromFn(fn:Void->Void,?pos:Pos):TestEffect{
     return () -> {
-      return Util.or_res(fn.fn().returning(Noise).prj(),pos).fold(
+      return Util.or_res(fn.fn().returning(Nada).prj(),pos).fold(
         ok -> Cluster.unit(),
         no -> Cluster.pure(E_Test_Refuse(no))
       );
