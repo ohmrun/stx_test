@@ -100,8 +100,10 @@ class Reporter extends Clazz{
               p.print_status(status,p.info_string('${method_call.field_name}'));
               for(assertion in method_call.assertions){
                 final predicate = 
-                  #if (sys || nodejs)
-                    Sys.env('STX_TEST__VERBOSE').is_defined();
+                  #if debug
+                    true;
+                  #elseif (sys || nodejs)
+                    Sys.env('STX_TEST_VERBOSE').is_defined();
                   #else
                     false;
                   #end

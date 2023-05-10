@@ -6,13 +6,20 @@ import stx.test.auto.Op;
 class Module extends Clazz{
   public function auto(?timeout):Void{
     (try{
-      final env = std.Sys.getEnv('STX_TEST__SUITE');
-      __.log().info('"$env"');
+      #if (sys || nodejs)
+      final env = std.Sys.getEnv('STX_TEST_SUITE');
+      __.log().info('STX_TEST_SUITE="$env"');
+      #end
 
       final spec = stx.test.module.Auto.reply().map(
         o -> __.couple(
           o,
-          o.specs.search(o -> o.name == env)
+          o.specs
+            #if (sys || nodejs)
+            .search(o -> o.name == env)
+            #else
+            .head()//TODO use 
+            #end
             .defv(
               {
                 name : "main",

@@ -1,7 +1,7 @@
 {
   "build" : {
     "-resource" : ["tests.pml@tests"],
-    "-lib"  : ["tink_core","stx_pico","stx_nano","stx_fn","stx_assert","fletcher","stx_config","stx_asys","pml","stx_show","equals"],
+    "-lib"  : ["tink_core","stx_pico","stx_nano","stx_fn","stx_assert","fletcher","stx_asys","pml","stx_show","equals"],
     "-D"    : [
       "no-deprecation-warnings",
       "stx.log.filter.show=false"
@@ -14,6 +14,11 @@
       ],
       "interp" : {
         "--interp" : true
+      },
+      "event" : {
+        "javascript" : {
+          "--js" : "build/unit/event/javascript/main.js"
+        }
       }
     },
     "test" : {
@@ -48,5 +53,13 @@
         "--interp" : true
       }
     }
+  },
+  "run" : {
+    "seq":[["if", ["==", ["hx","build",[0]], 0], ["hx","build",[1]], ["exit",-999]]],
+    "units" : [
+      "seq",
+      "unit/interp",
+      "unit/event/javascript"
+    ]
   }
 }
