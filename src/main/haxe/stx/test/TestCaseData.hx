@@ -33,7 +33,7 @@ class TestCaseData{
   public function toString(){
     return 'TestCaseData(${class_name})';
   }
-  static public function make(test_case,class_name,method_calls){
+  @:noUsing static public function make(test_case,class_name,method_calls){
     return new TestCaseData(test_case,class_name,method_calls);
   }
   public function copy(?test_case,?class_name,?method_calls){

@@ -74,7 +74,7 @@ class Auto{
   }
   static public function reply(){
     final v       = __.resource('tests').string();
-    final vI      = __.pml().parseI()(v.reader()).toChunk();
+    final vI      = __.pml().parser()(v.reader()).toChunk();
     return vI.fold(
       x -> return stx.test.module.Auto.main().apply([x].reader()).toUpshot().fold(
         ok -> ok.fold(

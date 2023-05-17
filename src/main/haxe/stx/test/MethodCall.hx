@@ -19,7 +19,7 @@ class MethodCall{
   //TODO: async assertions?
   public function call():TestResult{
     __.log().blank('call: timeout : ${get_timeout()}');
-    __.assert().exists(_call);
+    __.assert().that().exists(_call);
     this.timestamp                  = haxe.Timer.stamp();
     /**
       Figuring out which assertions a test has made to avoid PosInfos

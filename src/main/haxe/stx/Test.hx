@@ -9,9 +9,9 @@ using stx.Assert;
 class Test{
   static public function poke(wildcard:Wildcard,arr:Array<Dynamic>){ 
     __.log().debug((x) -> x.thunk(arr.map.bind(__.definition)));
-    return arr.map(__.that().iz)
-      .lfold1(__.that().or)
-      .defv(__.that().never())
+    return arr.map(__.assert().expect().iz)
+      .lfold1(__.assert().expect().or)
+      .defv(__.assert().expect().never())
       .check();
   }
   static public function test<T:TestCase>(wildcard:Wildcard){

@@ -2,7 +2,7 @@ package stx.test.core;
 
 class Timeout{
   @:noUsing static public function make(timeout:Int):TestResult{
-    __.assert().exists(timeout);
+    __.assert().that().exists(timeout);
     __.log().trace('make timeout');
     return new stx.Timeout(timeout).map(
       _ -> {
