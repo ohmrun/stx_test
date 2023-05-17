@@ -1,4 +1,9 @@
-package stx.test.reporter;
+package sys.stx.test.reporter;
+
+using stx.Test;
+using stx.Pico;
+using stx.Nano;
+import stx.test.reporter.ReportingApi;
 
 class MacroReporting implements ReportingApi extends Clazz{
   public var green_tick(get,null):String;

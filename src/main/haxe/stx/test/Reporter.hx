@@ -6,7 +6,7 @@ class Reporter extends Clazz{
   public function new(stream){
     super();
     this.stream   = stream;
-    this.printing = #if macro new stx.test.reporter.MacroReporting() #else new stx.test.reporter.RuntimeReporting() #end; 
+    this.printing = #if macro new sys.stx.test.reporter.MacroReporting() #else new stx.test.reporter.RuntimeReporting() #end; 
   }
   private function close(err:Refuse<Dynamic>):Void{
     if(err != null){
