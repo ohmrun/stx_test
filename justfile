@@ -1,8 +1,8 @@
 unit:
-  clear && hx build unit
+  clear && hb build unit
 test_interp:
-  clear && hx build test/interp
+  clear && hb build test/interp
 test_reader:
-  clear && hx build test/reader
+  clear && hb build test/reader
 new_test_reader:
-  clear && hx build features/new_test_reader
+  clear && hb build features/new_test_reader

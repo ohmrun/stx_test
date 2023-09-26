@@ -88,7 +88,7 @@ class Auto{
     ).flat_map(x -> x);
   }
   static public function indeces(){
-    return imbibe(symbol('indeces')._and(wordish().one_many()).then(AIndeces),'main');
+    return imbibe(Parsers.AndR(symbol('indeces'),wordish().one_many()).then(AIndeces),'main');
   }
   static public function suite_spec(){
     return imbibe(
